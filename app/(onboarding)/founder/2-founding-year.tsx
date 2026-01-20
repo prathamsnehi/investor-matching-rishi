@@ -7,8 +7,8 @@ import { TimelineSelector } from '@/components/onboarding/TimelineSelector';
 import { useThemeColor } from '@/utils/contexts/ColorProvider';
 import { getInternalFounderData, setInternalFounderData } from '@/utils/storage/onboarding';
 
-// Years for timeline
-const YEARS = Array.from({ length: 77 }, (_, i) => (2026 - i).toString());
+// Years for timeline - 2026 down to 1700
+const YEARS = Array.from({ length: 2026 - 1700 + 1 }, (_, i) => (2026 - i).toString());
 
 const STEP = 2;
 const TOTAL_STEPS = 4;
