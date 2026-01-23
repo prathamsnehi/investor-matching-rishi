@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "investment-matching",
+    "name": "Investor Matching",
     "slug": "investment-matching",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.blackmaskexe.investment-matching"
+      "bundleIdentifier": "com.blackmaskexe.investment-matching",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -45,6 +48,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d1b17aaa-1756-4663-bb7c-157143b1ca5d"
+      }
     }
   }
 }

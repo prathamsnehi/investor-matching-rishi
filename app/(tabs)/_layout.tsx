@@ -6,6 +6,7 @@ export default function TabsLayout() {
     const theme = useThemeColor();
     return (
         <Tabs screenOptions={{
+            headerShown: false,
             tabBarStyle: {
                 backgroundColor: theme.background
             }
@@ -13,7 +14,7 @@ export default function TabsLayout() {
             <Tabs.Screen name="discover" options={{
                 title: "Discover",
                 tabBarIcon: () => (
-                    <Ionicons name="chevron-back" size={24} color={theme.primary} />
+                    <Ionicons name="home" size={24} color={theme.primary} />
                 )
             }}/>
             <Tabs.Screen name="profile" options={{

@@ -4,9 +4,13 @@ import { useThemeColor } from '@/utils/contexts/ColorProvider';
 export default function DiscoverLayout() {
   const theme = useThemeColor();
   return (
-    <Stack screenOptions={{ 
-      headerShown: false,
-      contentStyle: { backgroundColor: theme.background }
-    }} />
+    <Stack>
+        <Stack.Screen name='index' options={{
+            title: "Discover",
+            headerStyle: { backgroundColor: theme.background },
+            headerTitleStyle: { color: theme.text },
+            headerTintColor: theme.primary
+        }}/>
+    </Stack>
   );
 }
