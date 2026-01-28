@@ -7,9 +7,7 @@ export default function DiscoverLayout() {
     <Stack>
         <Stack.Screen name='index' options={{
             title: "Discover",
-            headerStyle: { backgroundColor: theme.background },
-            headerTitleStyle: { color: theme.text },
-            headerTintColor: theme.primary
+            headerShown: false,
         }}/>
     </Stack>
   );

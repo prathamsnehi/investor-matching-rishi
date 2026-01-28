@@ -35,7 +35,7 @@ export const StoryContent = ({ stories, onFinished }: StoryContentProps) => {
 
   return (
     <TouchableWithoutFeedback onPress={handlePress}>
-      <View style={[styles.container, { backgroundColor: theme.background, borderColor: theme.gray }]}>
+      <View style={[styles.container, { backgroundColor: theme.primary, borderColor: theme.gray }]}>
         
         {/* Progress Bars */}
         <View style={styles.progressContainer}>
