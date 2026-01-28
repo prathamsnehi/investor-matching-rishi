@@ -16,10 +16,14 @@ function RootLayoutContent() {
   );
 }
 
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 export default function RootLayout() {
   return (
-    <ColorProvider>
-      <RootLayoutContent />
-    </ColorProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ColorProvider>
+        <RootLayoutContent />
+      </ColorProvider>
+    </GestureHandlerRootView>
   );
 }

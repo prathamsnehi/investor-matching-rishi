@@ -1,6 +1,8 @@
 import { Tabs } from "expo-router";
 import { useThemeColor } from "@/utils/contexts/ColorProvider";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
+
 
 export default function TabsLayout() {
     const theme = useThemeColor();
