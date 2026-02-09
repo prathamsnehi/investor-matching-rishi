@@ -1,6 +1,6 @@
 - mandatory / non-mandatory
 - input boxes when click on others
-- select teh founding year instead of "Select the year your startup began"
+- select teh founding year instead of "Select the year your startup began" ✅
 - targety market type founder multi select
 - founder profile optional information:
 - - put funding need range from optional to mandatory (in basic information after team size). And change title from Funding Need Range -> Investment Ask Range ⭐️
@@ -14,14 +14,10 @@ investor onboarding:
 - remove geo focus from preferences
 - remove ipo in exit expectations
 
-
-
 login:
 
 - 2 step verification: email + phone number (phone number via otp, email also via otp)
 - - phone number is still mandatory
-
-
 
 right after this:
 

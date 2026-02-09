@@ -41,7 +41,7 @@ export default function FoundingYearScreen() {
 
       <View style={styles.content}>
         <Text style={[styles.sectionHeader, { color: theme.primary, marginTop: 0 }]}>When was it founded?</Text>
-        <Text style={{ color: theme.icon, marginBottom: 16 }}>Select the year your startup began.</Text>
+        <Text style={{ color: theme.icon, marginBottom: 16 }}>Select the founding year of your startup by clicking on any year below.</Text>
         <TimelineSelector 
             years={YEARS} 
             selectedYear={year} 

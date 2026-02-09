@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, LayoutChangeEvent, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SelectionGroup } from '@/components/onboarding/SelectionGroup';
 import { Button } from '@/components/ui/Button';
@@ -7,25 +7,26 @@ import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useThemeColor } from '@/utils/contexts/ColorProvider';
 import { getInternalFounderData, setInternalFounderData } from '@/utils/storage/onboarding';
 import { FounderOnboardingData } from '@/utils/storage/types';
+import { validateMandatoryFields, showValidationError } from '@/utils/validation';
 
 const BUSINESS_MODELS = [
   'B2B', 'B2C', 'B2B2C', 'Subscription', 'Marketplace', 'SaaS', 'Hybrid', 'Other'
-].map(l => ({ label: l, value: l }));
+];
 
 const TARGET_MARKETS = [
   'Urban Consumers', 'Rural Consumers', 'MSMEs', 'Enterprise', 
   'Government', 'NGOs', 'International', 'Other'
-].map(l => ({ label: l, value: l }));
+];
 
 const FUNDING_HISTORY = [
   'Bootstrapped', 'Friends & Family', 'Angel Round', 'Seed Round', 
   'Pre-Series A', 'Series A +'
-].map(l => ({ label: l, value: l }));
+];
 
 const INVESTOR_TYPES = [
   'No Preference', 'Angel Investor', 'VC', 'Family Office', 
   'Impact Fund', 'Accelerator', 'Other'
-].map(l => ({ label: l, value: l }));
+];
 
 const STEP = 3;
 const TOTAL_STEPS = 4;
@@ -33,6 +34,8 @@ const TOTAL_STEPS = 4;
 export default function BusinessSnapshotScreen() {
   const router = useRouter();
   const theme = useThemeColor();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const layoutMap = useRef<Record<string, number>>({});
   
   const [model, setModel] = useState<string[]>([]);
   const [targetMarket, setTargetMarket] = useState<string[]>([]);
@@ -47,48 +50,68 @@ export default function BusinessSnapshotScreen() {
     if (data.investorType) setInvestorType(data.investorType);
   }, []);
 
-  const handleSelect = (
-    current: string[], 
-    setter: (v: string[]) => void, 
-    value: string, 
-    multi: boolean
-  ) => {
-    if (multi) {
-      if (current.includes(value)) {
-        setter(current.filter(v => v !== value));
-      } else {
-        setter([...current, value]);
-      }
-    } else {
-      if (current.includes(value)) {
-        setter([]);
-      } else {
-        setter([value]);
-      }
-    }
+  const captureLayout = (field: string, event: LayoutChangeEvent) => {
+    layoutMap.current[field] = event.nativeEvent.layout.y;
   };
 
   const nextStep = () => {
+    const data = { model, targetMarket, fundingHistory, investorType };
+    const fields = ['model', 'targetMarket', 'fundingHistory', 'investorType'];
+    
+    const { isValid, pendingField } = validateMandatoryFields(data, fields);
+
+    if (!isValid && pendingField) {
+        showValidationError(pendingField);
+        const y = layoutMap.current[pendingField];
+        if (y !== undefined && scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({ y: y - 20, animated: true });
+        }
+        return;
+    }
+
     const update: Partial<FounderOnboardingData> = {
         model, targetMarket, fundingHistory, investorType
     };
     setInternalFounderData(update);
-    router.push('/(onboarding)/founder/4-optional');
+    // Updated route to 4-additional
+    router.push('/(onboarding)/founder/4-additional');
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={20}
+      >
       <View style={styles.headerContainer}>
         <Text style={[styles.header, { color: theme.text }]}>Founder Profile</Text>
         <ProgressBar progress={STEP / TOTAL_STEPS} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView 
+        ref={scrollViewRef}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={[styles.sectionHeader, { color: theme.primary, marginTop: 0 }]}>Business Snapshot</Text>
-        <SelectionGroup title="Business Model" options={BUSINESS_MODELS} selectedValues={model} onSelect={(v) => handleSelect(model, setModel, v, true)} multiSelect />
-        <SelectionGroup title="Target Market Type" options={TARGET_MARKETS} selectedValues={targetMarket} onSelect={(v) => handleSelect(targetMarket, setTargetMarket, v, false)} />
-        <SelectionGroup title="Funding History" options={FUNDING_HISTORY} selectedValues={fundingHistory} onSelect={(v) => handleSelect(fundingHistory, setFundingHistory, v, true)} multiSelect />
-        <SelectionGroup title="Preferred Investor Type" options={INVESTOR_TYPES} selectedValues={investorType} onSelect={(v) => handleSelect(investorType, setInvestorType, v, true)} multiSelect />
+        
+        <View onLayout={(e) => captureLayout('model', e)}>
+            <SelectionGroup title="Business Model" options={BUSINESS_MODELS} selected={model} onSelect={setModel} maxSelect={3} />
+        </View>
+
+        <View onLayout={(e) => captureLayout('targetMarket', e)}>
+            <SelectionGroup title="Target Market Type" options={TARGET_MARKETS} selected={targetMarket} onSelect={setTargetMarket} maxSelect={3} />
+        </View>
+
+        <View onLayout={(e) => captureLayout('fundingHistory', e)}>
+            <SelectionGroup title="Funding History" options={FUNDING_HISTORY} selected={fundingHistory} onSelect={setFundingHistory} maxSelect={3} />
+        </View>
+
+        <View onLayout={(e) => captureLayout('investorType', e)}>
+            <SelectionGroup title="Preferred Investor Type" options={INVESTOR_TYPES} selected={investorType} onSelect={setInvestorType} maxSelect={3} />
+        </View>
+        
         <View style={{ height: 100 }} /> 
       </ScrollView>
 
@@ -108,6 +131,7 @@ export default function BusinessSnapshotScreen() {
            />
         </View>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
