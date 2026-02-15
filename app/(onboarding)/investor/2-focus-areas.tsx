@@ -10,12 +10,13 @@ import { InvestorOnboardingData } from '@/utils/storage/types';
 import { validateMandatoryFields, showValidationError } from '@/utils/validation';
 
 const FREQUENCIES = [
-  '1-2 deals/year', '3-5 deals/year', '5-10 deals/year', 'Active (10+)'
+  '1-2 / year', '3-5 / year', '5-10 / year', 'Active (10+)'
 ];
 
 const SECTORS = [
-  'Sector Agnostic', 'AgriTech', 'FinTech', 'HealthTech', 'EdTech', 'ClimateTech', 
-  'SaaS', 'DeepTech', 'Consumer', 'Other'
+  'Fintech', 'Healthtech / Biotech', 'Edtech', 'Agritech', 'Climate / Energy', 
+  'Mobility / Logistics', 'Consumer Internet', 'Enterprise Software', 
+  'Industrial / Manufacturing', 'Deep Tech (AI, Robotics, Quantum, etc.)', 'Other'
 ];
 
 const STEP = 2;

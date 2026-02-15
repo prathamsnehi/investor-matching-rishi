@@ -10,11 +10,14 @@ import { InvestorOnboardingData } from '@/utils/storage/types';
 import { validateMandatoryFields, showValidationError } from '@/utils/validation';
 
 const INVOLVEMENT = [
-  'Passive / Hands-off', 'Board Seat', 'Strategic Mentorship', 'Network & Hiring Support'
+  'Passive capital only', 'Active advisory role', 
+  'Strategic guidance when requested', 
+  'Board seat required', 
+  'Hands-on operator support'
 ];
 
 const EXIT_EXPECTATIONS = [
-  'Short Term (3-5 years)', 'Medium Term (5-7 years)', 'Long Term (7+ years)'
+  'Short Term (2–5 yrs)', 'Medium Term (5–8 yrs)', 'Long Term (8+ yrs)'
 ];
 
 const STEP = 3;

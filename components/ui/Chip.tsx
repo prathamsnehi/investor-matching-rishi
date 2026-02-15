@@ -29,7 +29,7 @@ export const Chip = ({ label, selected, onPress }: ChipProps) => {
           styles.text,
           {
             color: selected ? theme.primary : theme.text,
-            fontWeight: selected ? '600' : '400',
+            fontWeight: '500',
           },
         ]}
       >

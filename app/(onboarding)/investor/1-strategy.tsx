@@ -10,15 +10,17 @@ import { InvestorOnboardingData } from '@/utils/storage/types';
 import { validateMandatoryFields, showValidationError } from '@/utils/validation';
 
 const FUND_TYPES = [
-  'Angel Syndicate', 'Micro VC', 'Early Stage VC', 'Growth VC', 'Corporate VC', 'Family Office', 'PE Fund', 'Other'
+  'Angel Investor', 'VC', 'Family Office', 'Impact Fund', 'Accelerator'
 ];
 
 const REGIONS = [
-  'India', 'SEA', 'Middle East', 'Europe', 'North America', 'Global'
+  'India', 'South Asia (ex-India)', 'Southeast Asia', 'Middle East & North Africa', 
+  'Europe', 'North America', 'Latin America', 'Africa', 'Oceania'
 ];
 
 const STAGES = [
-  'Pre-Seed', 'Seed', 'Pre-Series A', 'Series A', 'Series B+'
+  'Idea (pre-product)', 'MVP Built (pre-revenue)', 'Early Revenue', 
+  'Product-Market Fit', 'Scaling (rapid growth)', 'Late Stage', 'Pre-Exit'
 ];
 
 const TICKET_SIZES = [
@@ -80,7 +82,7 @@ export default function StrategyScreen() {
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={20}
+        keyboardVerticalOffset={100}
       >
       <View style={styles.headerContainer}>
         <Text style={[styles.header, { color: theme.text }]}>Investor Profile</Text>
@@ -107,7 +109,7 @@ export default function StrategyScreen() {
         </View>
 
         <View onLayout={(e) => captureLayout('stage', e)}>
-            <SelectionGroup title="Preferred Stage(s)" options={STAGES} selected={stage} onSelect={setStage} maxSelect={10} />
+            <SelectionGroup title="Preferred Company Stage" options={STAGES} selected={stage} onSelect={setStage} maxSelect={10} />
         </View>
 
         <View style={{ height: 100 }} /> 

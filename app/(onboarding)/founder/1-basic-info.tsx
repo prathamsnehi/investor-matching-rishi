@@ -10,22 +10,23 @@ import { FounderOnboardingData } from '@/utils/storage/types';
 import { validateMandatoryFields, showValidationError } from '@/utils/validation';
 
 const ROLES = [
-  'Founder', 'Co-Founder', 'CEO', 'CTO', 'COO', 'CMO', 'Other'
+  'Solo Founder', 'Co-founder', 'Not a Founder'
 ];
 
 const SECTORS = [
-  'AgriTech', 'FinTech', 'HealthTech', 'EdTech', 'ClimateTech', 
-  'SaaS', 'ConsumerTech', 'AI-ML', 'D2C', 'Mobility', 
-  'Clean Energy', 'DeepTech', 'Other'
+  'Fintech', 'Healthtech / Biotech', 'Edtech', 'Agritech', 'Climate / Energy', 
+  'Mobility / Logistics', 'Consumer Internet', 'Enterprise Software', 
+  'Industrial / Manufacturing', 'Deep Tech (AI, Robotics, Quantum, etc.)', 'Other'
 ];
 
 const STAGES = [
-  'Idea', 'Prototype', 'MVP', 'Early Revenue', 'Growth', 
-  'Scaling', 'Profitable', 'Exit-Ready'
+  'Idea (pre-product)', 'MVP Built (pre-revenue)', 'Early Revenue', 
+  'Product-Market Fit', 'Scaling (rapid growth)', 'Late Stage', 'Pre-Exit'
 ];
 
 const REGIONS = [
-  'India', 'SEA', 'Middle East', 'Europe', 'North America', 'Other'
+  'India', 'South Asia (ex-India)', 'Southeast Asia', 'Middle East & North Africa', 
+  'Europe', 'North America', 'Latin America', 'Africa', 'Oceania'
 ];
 
 const TEAM_SIZES = [
@@ -128,15 +129,15 @@ export default function BasicInfoScreen() {
         </View>
 
         <View onLayout={(e) => captureLayout('sector', e)}>
-            <SelectionGroup title="Industry / Sector" options={SECTORS} selected={sector} onSelect={setSector} maxSelect={3} />
+            <SelectionGroup title="Industry / Sector" options={SECTORS} selected={sector} onSelect={setSector} maxSelect={10} />
         </View>
 
         <View onLayout={(e) => captureLayout('stage', e)}>
-            <SelectionGroup title="Company Stage" options={STAGES} selected={stage} onSelect={setStage} />
+            <SelectionGroup title="Company Stage" options={STAGES} selected={stage} onSelect={setStage} maxSelect={10} />
         </View>
 
         <View onLayout={(e) => captureLayout('region', e)}>
-            <SelectionGroup title="HQ Location" options={REGIONS} selected={region} onSelect={setRegion} />
+            <SelectionGroup title="Target Market Geography" options={REGIONS} selected={region} onSelect={setRegion} maxSelect={10} />
         </View>
 
         <View onLayout={(e) => captureLayout('teamSize', e)}>

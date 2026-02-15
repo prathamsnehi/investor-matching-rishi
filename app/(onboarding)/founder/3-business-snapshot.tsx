@@ -10,12 +10,12 @@ import { FounderOnboardingData } from '@/utils/storage/types';
 import { validateMandatoryFields, showValidationError } from '@/utils/validation';
 
 const BUSINESS_MODELS = [
-  'B2B', 'B2C', 'B2B2C', 'Subscription', 'Marketplace', 'SaaS', 'Hybrid', 'Other'
+  'B2B', 'B2C', 'B2B2C', 'Marketplace', 'Platform/API', 'Government / Enterprise Contracts'
 ];
 
 const TARGET_MARKETS = [
-  'Urban Consumers', 'Rural Consumers', 'MSMEs', 'Enterprise', 
-  'Government', 'NGOs', 'International', 'Other'
+  'Consumers (B2C)', 'SMB / MSMEs', 'Enterprises', 'Government', 
+  'Non-profits / NGOs'
 ];
 
 const FUNDING_HISTORY = [
@@ -25,7 +25,7 @@ const FUNDING_HISTORY = [
 
 const INVESTOR_TYPES = [
   'No Preference', 'Angel Investor', 'VC', 'Family Office', 
-  'Impact Fund', 'Accelerator', 'Other'
+  'Impact Fund', 'Accelerator'
 ];
 
 const STEP = 3;
@@ -97,19 +97,19 @@ export default function BusinessSnapshotScreen() {
         <Text style={[styles.sectionHeader, { color: theme.primary, marginTop: 0 }]}>Business Snapshot</Text>
         
         <View onLayout={(e) => captureLayout('model', e)}>
-            <SelectionGroup title="Business Model" options={BUSINESS_MODELS} selected={model} onSelect={setModel} maxSelect={3} />
+            <SelectionGroup title="Business Model" options={BUSINESS_MODELS} selected={model} onSelect={setModel} maxSelect={10} />
         </View>
 
         <View onLayout={(e) => captureLayout('targetMarket', e)}>
-            <SelectionGroup title="Target Market Type" options={TARGET_MARKETS} selected={targetMarket} onSelect={setTargetMarket} maxSelect={3} />
+            <SelectionGroup title="Target Market Type" options={TARGET_MARKETS} selected={targetMarket} onSelect={setTargetMarket} maxSelect={10} />
         </View>
 
         <View onLayout={(e) => captureLayout('fundingHistory', e)}>
-            <SelectionGroup title="Funding History" options={FUNDING_HISTORY} selected={fundingHistory} onSelect={setFundingHistory} maxSelect={3} />
+            <SelectionGroup title="Funding History" options={FUNDING_HISTORY} selected={fundingHistory} onSelect={setFundingHistory} maxSelect={10} />
         </View>
 
         <View onLayout={(e) => captureLayout('investorType', e)}>
-            <SelectionGroup title="Preferred Investor Type" options={INVESTOR_TYPES} selected={investorType} onSelect={setInvestorType} maxSelect={3} />
+            <SelectionGroup title="Preferred Investor Type" options={INVESTOR_TYPES} selected={investorType} onSelect={setInvestorType} maxSelect={10} />
         </View>
         
         <View style={{ height: 100 }} /> 

@@ -18,7 +18,8 @@ const RUNWAYS = [
 ];
 
 const LEGAL_STATUSES = [
-  'Sole Proprietorship', 'Pvt Ltd', 'LLP', 'Partnership', 'Other'
+  'Not incorporated yet', 'Sole Proprietorship', 'Partnership Firm', 'LLP', 
+  'Private Limited Company', 'Public Company', 'Nonprofit Entity', 'Other'
 ];
 
 const STEP = 4;
