@@ -1,5 +1,5 @@
-from preprocess.worker_app import broker
-from preprocess.pdf_service import PDFExtractionService
+from src.preprocess.worker_app import broker
+from src.preprocess.pdf_service import PDFExtractionService
 
 from typing import Dict, Any
 
