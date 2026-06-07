@@ -22,3 +22,6 @@ android
 __pycache__/
 */uv.lock
 *.py[cod]
+
+#volume files
+**/uploads/

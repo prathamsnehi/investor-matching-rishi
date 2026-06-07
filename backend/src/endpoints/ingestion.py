@@ -8,7 +8,7 @@ from datetime import timezone, datetime
 
 router = APIRouter()
 
-UPLOAD_DIR = Path("backend/uploads")
+UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
 @router.post("/upload", response_model=FileUploadResponse)
