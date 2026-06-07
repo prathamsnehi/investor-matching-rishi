@@ -1,1 +1,2 @@
 me: schema design (initial) -> investor, founder, pitch basic skeletal structure, pitch deck upload interface with firebase
+parv: Embedding service, api routes for embedding service, dense/sparse separation 
