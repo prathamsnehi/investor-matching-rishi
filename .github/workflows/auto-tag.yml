@@ -40,6 +40,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # 5. Create the tag locally and push it to the remote
+          # 5. Update frontend/app.json with the new version
+          if [ -f "frontend/app.json" ]; then
+            jq --arg v "$NEW_TAG" '.expo.version = $v' frontend/app.json > tmp.json && mv tmp.json frontend/app.json
+            
+            git add frontend/app.json
+            git commit -m "chore: bump app.json version to $NEW_TAG [skip ci]" || echo "No changes to commit"
+            git push origin HEAD:${GITHUB_REF#refs/heads/}
+          fi
+
+          # 6. Create the tag locally on the newly created commit and push it
           git tag "$NEW_TAG"
           git push origin "$NEW_TAG"

@@ -1,3 +1,7 @@
+## 1.0.2
+
+- add github actions workflow to bump up frontend app version for testflight (to sync app version and repo tag)
+
 ## 1.0.1
 
 - add github actions workflow that auto tags each commit (eg: 1.5.4 -> 1.5.5)
