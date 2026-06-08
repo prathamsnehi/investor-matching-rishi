@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.endpoints import ingestion
+from src_api.endpoints import ingestion
 
 api_router = APIRouter()
 

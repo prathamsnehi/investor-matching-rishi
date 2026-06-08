@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.endpoints.main_router import api_router
+from src_api.endpoints.main_router import api_router
 
 app = FastAPI(
     title="Fundmatch main API service",

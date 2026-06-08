@@ -9,17 +9,34 @@ services:
       - "8000:8000"
     env_file:
       - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  
+  ml:
+    build:
+      context: ./src_ml
+      dockerfile: Dockerfile.ml
+    ports:
+      - "8001:8000"
+    env_file:
+      - .env
     
   db:
-    build:
-      context: .
-      dockerfile: Dockerfile.postgres
+    image: ankane/pgvector:latest
     ports:
       - "5432:5432"
     env_file:
       - .env
     volumes:
       - pgdata:/var/lib/postgres/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -29,6 +46,11 @@ services:
       - redis-server --appendonly yes
     volumes:
       - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
