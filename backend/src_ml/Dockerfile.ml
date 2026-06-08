@@ -7,9 +7,9 @@ WORKDIR /src_ml
 COPY pyproject.toml ./
 COPY uv.lock ./
 
-ENV UV_PROJECT_ENVIRONMENT=/usr/local
-
 RUN uv sync 
+
+ENV PATH="/src_ml/.venv/bin:$PATH"
 
 COPY . .
 

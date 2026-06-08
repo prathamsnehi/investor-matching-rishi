@@ -7,9 +7,9 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY uv.lock ./
 
-ENV UV_PROJECT_ENVIRONMENT=/usr/local
-
 RUN uv sync 
+
+ENV PATH="/app/.venv/bin:$PATH"
 
 COPY . .
 
