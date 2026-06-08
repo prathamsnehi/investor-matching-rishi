@@ -115,7 +115,8 @@ export const SwipeCard = forwardRef<SwipeCardRef, SwipeCardProps>(({ profile, on
 
 const styles = StyleSheet.create({
   card: {
-    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
     borderRadius: 20,
     backgroundColor: 'white', // Ensure solid background even if content is transparent
     overflow: 'visible', // Visible for shadow

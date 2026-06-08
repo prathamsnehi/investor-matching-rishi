@@ -1,0 +1,45 @@
+name: Auto Tag Version Bump
+
+on:
+  push:
+    branches:
+      - '**' # Run on all branch pushes, but ignores tag pushes to prevent infinite loops
+
+jobs:
+  bump-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to push tags to the repository
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history so we can find previous tags
+
+      - name: Bump version and push tag
+        run: |
+          # 1. Check if the current commit already has a tag (handles manual overrides)
+          CURRENT_TAG=$(git tag --points-at HEAD)
+          if [ -n "$CURRENT_TAG" ]; then
+            echo "Current commit is already manually tagged with: $CURRENT_TAG"
+            echo "Skipping automatic tag bump."
+            exit 0
+          fi
+
+          # 2. Find the latest tag across all branches (default to 0.0.0 if none exists)
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          echo "Latest tag found: $LATEST_TAG"
+
+          # 3. Increment the 3rd part of the version string (e.g. 1.0.0 -> 1.0.1 or 2.1.11 -> 2.1.12)
+          # We use awk with dot delimiter to just bump the third field, ignoring the rest
+          NEW_TAG=$(echo "$LATEST_TAG" | awk -F. '{OFS="."; $3=$3+1; print $0}')
+          echo "New tag to apply: $NEW_TAG"
+
+          # 4. Setup git config for the Github Actions Bot
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # 5. Create the tag locally and push it to the remote
+          git tag "$NEW_TAG"
+          git push origin "$NEW_TAG"

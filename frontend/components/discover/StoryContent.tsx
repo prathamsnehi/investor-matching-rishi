@@ -79,6 +79,8 @@ export const StoryContent = ({ stories, onFinished }: StoryContentProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     borderRadius: 20,
     borderWidth: 1,
     shadowColor: "#000",
