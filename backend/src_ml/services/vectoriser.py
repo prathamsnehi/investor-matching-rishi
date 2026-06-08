@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 
@@ -15,17 +15,17 @@ class Vectoriser:
 class EmbeddingRequest(BaseModel):
     text: str | List[str]
 
-app = FastAPI(title="Embedding service")
+router = APIRouter(tags=["Embedding service"])
 vectoriser = Vectoriser()
 
-@app.get('healthcheck')
+@router.get('healthcheck')
 def health_check() -> Dict[str, str]:
     return{
         "status" : "Healthy",
         "model" : "all-MiniLM-L6-v2"
     }
 
-@app.post("/embed")
+@router.post("/embed")
 def embed_text(req: EmbeddingRequest) -> Dict[str. Any]:
     try:
         embeddings = vectoriser.embed(req.text)
