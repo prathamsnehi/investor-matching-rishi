@@ -26,9 +26,10 @@ def health_check() -> Dict[str, str]:
     }
 
 @router.post("/embed")
-def embed_text(req: EmbeddingRequest) -> Dict[str. Any]:
+def embed_text(req: EmbeddingRequest) -> Dict[str, Any]:
     try:
         embeddings = vectoriser.embed(req.text)
+        print(embeddings)
         return {
             "embeddings" : embeddings,
             "dimensions" : len(embeddings[0]) if isinstance(req.text, list) else len(embeddings),

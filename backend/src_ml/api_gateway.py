@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src_ml.services.routes import api_router
+from services.routes import api_router
 
 app = FastAPI(
     title="Fundmatch ML API gateway",
