@@ -4,9 +4,11 @@ from sentence_transformers import SentenceTransformer
 
 from typing import Dict, List, Any
 
+LOCAL_MODEL = "all-MiniLM-L6-v2"
+
 class Vectoriser:
-    def __init__(self):
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+    def __init__(self, model_name: str = LOCAL_MODEL):
+        self.model = SentenceTransformer(model_name)
 
     def embed(self, text: str | List[str]) -> List[float]:
         embeddings = self.model.encode(text).tolist()

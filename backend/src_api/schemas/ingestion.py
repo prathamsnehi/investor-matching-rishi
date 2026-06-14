@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Any
+from typing import Any, Dict
 from uuid import UUID
 from datetime import datetime
 
@@ -12,4 +12,6 @@ class FileUploadResponse(BaseModel):
     uploaded_at: datetime
     task_status: str
     status: int
+
+    file_metadata: Dict[str, Any]
     

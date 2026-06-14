@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from src_api.schemas.ingestion import FileUploadResponse
-from backend.workers.tasks import extract_text_from_upload
+from workers.tasks import extract_text_from_upload, embed_extracted_text
 
 from pathlib import Path
 from uuid import uuid4
@@ -25,16 +25,18 @@ async def upload_file(file: UploadFile = File(...)):
         f.write(contents)
 
     try:
-        task = await extract_text_from_upload.kiq(str(storage_path))
+        extraction_task = await extract_text_from_upload.kiq(str(storage_path))
+        embedding_task = await embed_extracted_text.kiq(extraction_response=extraction_task)
 
         return FileUploadResponse(
             file_id=file_id,
-            task_id=task.task_id,
+            task_id=extraction_task.task_id,
             stored_filename=stored_filename,
             size_bytes=len(contents),
             uploaded_at=datetime.now(timezone.utc),
             task_status="queued",
-            status=200
+            status=200,
+            file_metadata=embedding_task,
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=e)
