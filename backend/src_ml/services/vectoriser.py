@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
-
 from typing import Dict, List, Any
 
 LOCAL_MODEL = "all-MiniLM-L6-v2"
@@ -20,7 +19,7 @@ class EmbeddingRequest(BaseModel):
 router = APIRouter(tags=["Embedding service"])
 vectoriser = Vectoriser()
 
-@router.get('healthcheck')
+@router.get('/healthcheck')
 def health_check() -> Dict[str, str]:
     return{
         "status" : "Healthy",
@@ -39,7 +38,7 @@ def embed_text(req: EmbeddingRequest) -> Dict[str, Any]:
             "message": "success",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+        raise HTTPException(status_code=500, detail=str(e))
     
     
 

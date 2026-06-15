@@ -20,7 +20,7 @@ android
 */.venv
 /__pycache__
 __pycache__/
-*/uv.lock
+**/uv.lock
 *.py[cod]
 
 #volume files

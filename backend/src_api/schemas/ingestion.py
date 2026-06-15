@@ -12,6 +12,4 @@ class FileUploadResponse(BaseModel):
     uploaded_at: datetime
     task_status: str
     status: int
-
-    file_metadata: Dict[str, Any]
     

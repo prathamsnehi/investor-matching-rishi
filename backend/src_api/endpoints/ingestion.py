@@ -5,6 +5,7 @@ from workers.tasks import extract_text_from_upload, embed_extracted_text
 from pathlib import Path
 from uuid import uuid4
 from datetime import timezone, datetime
+import aiofiles
 
 router = APIRouter()
 
@@ -21,12 +22,11 @@ async def upload_file(file: UploadFile = File(...)):
 
     contents = await file.read()
 
-    with open(storage_path, "wb") as f:
-        f.write(contents)
+    async with aiofiles.open(storage_path, "wb") as f:
+        await f.write(contents)
 
     try:
         extraction_task = await extract_text_from_upload.kiq(str(storage_path))
-        embedding_task = await embed_extracted_text.kiq(extraction_response=extraction_task)
 
         return FileUploadResponse(
             file_id=file_id,
@@ -36,7 +36,6 @@ async def upload_file(file: UploadFile = File(...)):
             uploaded_at=datetime.now(timezone.utc),
             task_status="queued",
             status=200,
-            file_metadata=embedding_task,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=e)
+        raise HTTPException(status_code=500, detail=str(e))
