@@ -1,3 +1,7 @@
+## 1.0.9
+
+- initialize prisma db, with an initial Account schema
+
 ## 1.0.2
 
 - add github actions workflow to bump up frontend app version for testflight (to sync app version and repo tag)
