@@ -1,0 +1,27 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-py"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model Account {
+  id                   String   @id @default(uuid())
+  full_name            String
+  email_address        String
+  mobile_number        String // expecting them to put a non-91 version here
+  linkedin_profile_url String? // doc said required but feels like optional
+  photo_url            String? // image in firebase bucket url
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}

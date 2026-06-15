@@ -7,7 +7,7 @@ class PDFExtractionService:
         self.filepath = file_path
 
     def extract_text(self) -> str:
-        if not self.filepath.exists():
+        if not Path(self.filepath).exists():
             raise FileNotFoundError(f"PDF not found: {self.filepath}")
     
         text_parts: List[str] = []
