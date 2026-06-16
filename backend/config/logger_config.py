@@ -2,7 +2,7 @@ import logging
 from logging import StreamHandler
 
 class FundmatchLogger:
-    def __init__(self, level: logging._Level = logging.DEBUG) -> None:
+    def __init__(self, level = logging.DEBUG) -> None:
         self.level = level
     
     def setup_logging(self) -> None:

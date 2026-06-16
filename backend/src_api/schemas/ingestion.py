@@ -6,7 +6,7 @@ from datetime import datetime
 
 class FileUploadResponse(BaseModel):
     file_id: UUID
-    task_id: int
+    task_id: str
     stored_filename: str
     size_bytes: int
     uploaded_at: datetime
