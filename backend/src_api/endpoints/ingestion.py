@@ -19,7 +19,7 @@ logger.info("Core API gateway initialised")
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
 
-
+#Endpoints
 
 @router.post("/upload", response_model=FileUploadResponse)
 async def upload_file(file: UploadFile = File(...)):
@@ -30,9 +30,11 @@ async def upload_file(file: UploadFile = File(...)):
     storage_path = UPLOAD_DIR / stored_filename
 
     contents = await file.read()
+    logger.debug("File read successfully")
 
     async with aiofiles.open(storage_path, "wb") as f:
         await f.write(contents)
+    logger.debug("Contents written to memory successfully")
 
     try:
         extraction_task = await extract_text_from_upload.kiq(str(storage_path))
