@@ -4,8 +4,8 @@ RUN pip install --no-cache-dir uv
 
 WORKDIR /worker
 
-COPY pyproject.toml ./
-COPY uv.lock ./
+COPY workers/pyproject.toml ./pyproject.toml
+COPY workers/uv.lock ./uv.lock
 
 RUN uv sync 
 
@@ -15,4 +15,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uv", "run", "taskiq", "worker", "worker.app:broker", "reload"]
+CMD ["uv", "run", "taskiq", "worker", "workers.app:broker", "workers.tasks"]

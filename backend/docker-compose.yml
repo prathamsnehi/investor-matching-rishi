@@ -59,7 +59,7 @@ services:
   worker:
     build: 
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: workers/Dockerfile.worker
     container_name: taskiq_worker
     volumes:
       - ./:/worker

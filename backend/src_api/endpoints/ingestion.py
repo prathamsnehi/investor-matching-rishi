@@ -3,14 +3,23 @@ from src_api.schemas.ingestion import FileUploadResponse
 from workers.tasks import extract_text_from_upload
 
 from pathlib import Path
+from config.logger_config import FundmatchLogger
 from uuid import uuid4
 from datetime import timezone, datetime
 import aiofiles
+import logging
+
+logs = FundmatchLogger(level=logging.DEBUG)
+logs.setup_logging()
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
+logger.info("Core API gateway initialised")
 
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True, parents=True)
+
+
 
 @router.post("/upload", response_model=FileUploadResponse)
 async def upload_file(file: UploadFile = File(...)):
@@ -27,6 +36,7 @@ async def upload_file(file: UploadFile = File(...)):
 
     try:
         extraction_task = await extract_text_from_upload.kiq(str(storage_path))
+        logger.info("Task queued successfully")
 
         return FileUploadResponse(
             file_id=file_id,
@@ -38,4 +48,5 @@ async def upload_file(file: UploadFile = File(...)):
             status=200,
         )
     except Exception as e:
+        logger.exception("File upload failed")
         raise HTTPException(status_code=500, detail=str(e))

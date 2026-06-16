@@ -1,5 +1,12 @@
 from fastapi import FastAPI
 from src_api.endpoints.main_router import api_router
+from config.logger_config import FundmatchLogger
+
+import logging
+
+logs = FundmatchLogger(level=logging.DEBUG)
+logs.setup_logging()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Fundmatch main API service",
@@ -9,6 +16,7 @@ app = FastAPI(
 
 @app.get('/')
 def health_check():
+    logger.info("Healthcheck endpoint hit")
     return {
         "status" : "healthy"
     }
