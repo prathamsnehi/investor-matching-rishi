@@ -1,0 +1,13 @@
+[project]
+name = "background_worker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.136.3",
+    "python-multipart>=0.0.32",
+    "redis>=7.4.1",
+    "taskiq>=0.12.4",
+    "taskiq-redis>=1.2.2"
+]
