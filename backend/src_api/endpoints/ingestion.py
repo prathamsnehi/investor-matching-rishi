@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from src_api.schemas.ingestion import FileUploadResponse
-from workers.tasks import extract_text_from_upload, embed_extracted_text
+from workers.tasks import extract_text_from_upload
 
 from pathlib import Path
 from uuid import uuid4

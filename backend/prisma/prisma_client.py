@@ -1,9 +1,9 @@
 import asyncio
-from prisma import Prisma
+from prisma import prisma_client
 
 
 class DB:
     async def __init__(self):
-        prisma = Prisma()
+        prisma = prisma_client()
         await prisma.connect()
         

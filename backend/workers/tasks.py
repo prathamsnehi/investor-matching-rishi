@@ -27,6 +27,7 @@ async def extract_text_from_upload(file_path: str) -> Dict[str, Any]:
     return {
         "file_path" : file_path,
         "text" : text,
+        "embedding": embedding_data,
         "status": 200,
         "message": "success"
     }

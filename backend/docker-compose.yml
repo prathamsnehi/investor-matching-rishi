@@ -59,10 +59,10 @@ services:
   worker:
     build: 
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.worker
     container_name: taskiq_worker
     volumes:
-      - ./:app
+      - ./:/worker
     environment:
       - REDIS_URL=${REDIS_URL}
     depends_on:
