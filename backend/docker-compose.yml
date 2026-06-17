@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: api
     ports:
       - "8000:8000"
     env_file:
@@ -15,8 +16,9 @@ services:
   
   ml:
     build:
-      context: ./src_ml
-      dockerfile: Dockerfile.ml
+      context: .
+      dockerfile: ./src_ml/Dockerfile.ml
+    container_name: ml
     ports:
       - "8001:8000"
     env_file:
@@ -29,6 +31,7 @@ services:
     
   db:
     image: ankane/pgvector:latest
+    container_name: db
     ports:
       - "5432:5432"
     environment:
@@ -60,7 +63,7 @@ services:
     build: 
       context: .
       dockerfile: workers/Dockerfile.worker
-    container_name: taskiq_worker
+    container_name: worker
     environment:
       - REDIS_URL=${REDIS_URL}
     depends_on:

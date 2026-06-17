@@ -20,7 +20,8 @@ async def app_lifespan(app: FastAPI):
 app = FastAPI(
     title="Fundmatch main API service",
     description="Production boilerplate using APIRouter",
-    version="0.0.1"
+    version="0.0.1",
+    lifespan=app_lifespan,
 )
 
 @app.get('/')

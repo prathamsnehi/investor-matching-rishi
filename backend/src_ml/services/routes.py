@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from services import vectoriser
+from src_ml.services import vectoriser
 
 api_router = APIRouter()
 

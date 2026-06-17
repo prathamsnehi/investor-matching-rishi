@@ -3,14 +3,11 @@ from src_api.schemas.ingestion import FileUploadResponse
 from workers.tasks import extract_text_from_upload
 
 from pathlib import Path
-from config.logger_config import FundmatchLogger
 from uuid import uuid4
 from datetime import timezone, datetime
 import aiofiles
 import logging
 
-logs = FundmatchLogger(level=logging.DEBUG)
-logs.setup_logging()
 logger = logging.getLogger(__name__)
 
 router = APIRouter()

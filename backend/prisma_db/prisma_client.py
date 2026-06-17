@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 class PrismaDBClient:
     _instance = None
-    
-    def __init__(self) -> None:
-        self.client: Prisma
+    client: Prisma
 
     def __new__(cls) -> Self:
         if cls._instance is None:

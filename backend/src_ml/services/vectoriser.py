@@ -3,13 +3,17 @@ from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 from typing import Dict, List, Any
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 LOCAL_MODEL = "all-MiniLM-L6-v2"
 
 class Vectoriser:
     def __init__(self, model_name: str = LOCAL_MODEL):
         self.model = SentenceTransformer(model_name)
 
-    def embed(self, text: str | List[str]) -> List[float]:
+    def embed(self, text: str | List[str]) -> List[float] | List[List[float]]:
         embeddings = self.model.encode(text).tolist()
         return embeddings
     
@@ -18,6 +22,7 @@ class EmbeddingRequest(BaseModel):
 
 router = APIRouter(tags=["Embedding service"])
 vectoriser = Vectoriser()
+logger.info(f"{LOCAL_MODEL} Model loaded into memory")
 
 @router.get('/healthcheck')
 def health_check() -> Dict[str, str]:
@@ -29,8 +34,9 @@ def health_check() -> Dict[str, str]:
 @router.post("/embed")
 def embed_text(req: EmbeddingRequest) -> Dict[str, Any]:
     try:
-        embeddings = vectoriser.embed(req.text)
-        print(embeddings)
+        logger.info("Embedding text...")
+        embeddings: List[float] | List[List[float]] = vectoriser.embed(req.text)
+        logger.info("Text successfully embedded!")
         return {
             "embeddings" : embeddings,
             "dimensions" : len(embeddings[0]) if isinstance(req.text, list) else len(embeddings),
@@ -38,6 +44,7 @@ def embed_text(req: EmbeddingRequest) -> Dict[str, Any]:
             "message": "success",
         }
     except Exception as e:
+        logger.exception("An error occured while embedding")
         raise HTTPException(status_code=500, detail=str(e))
     
     

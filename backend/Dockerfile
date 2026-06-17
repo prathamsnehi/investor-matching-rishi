@@ -1,5 +1,7 @@
 FROM python:3.13-slim
 
+RUN apt-get update && apt-get install -y libatomic1 && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir uv
 
 WORKDIR /app
@@ -12,6 +14,8 @@ RUN uv sync
 ENV PATH="/app/.venv/bin:$PATH"
 
 COPY . .
+
+RUN uv run prisma generate --schema=prisma_db/schema.prisma
 
 EXPOSE 8000
 
