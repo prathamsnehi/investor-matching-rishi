@@ -34,7 +34,11 @@ async def upload_file(file: UploadFile = File(...)):
     logger.debug("Contents written to memory successfully")
 
     try:
-        extraction_task = await extract_text_from_upload.kiq(str(storage_path))
+        extraction_task = await extract_text_from_upload.kiq(
+            str(storage_path),
+            profile_id=uuid4(),
+            profile_type="FOUNDER"
+            )
         logger.info("Task queued successfully")
 
         return FileUploadResponse(
