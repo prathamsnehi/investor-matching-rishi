@@ -12,8 +12,15 @@ COPY uv.lock ./
 RUN uv sync 
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH=/app
 
-COPY . .
+COPY config/ /app/config/
+COPY prisma_db/ /app/prisma_db/
+COPY workers/ /app/workers/
+
+RUN uv run prisma generate --schema=prisma_db/schema.prisma
+
+COPY src_api/ /app/src_api/
 
 RUN uv run prisma generate --schema=prisma_db/schema.prisma
 

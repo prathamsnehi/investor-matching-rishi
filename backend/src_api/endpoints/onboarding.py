@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from prisma_db.prisma_client import db
-from schemas.onboarding import InvestorOnboardingRequest, FounderOnboardingRequest
+from src_api.schemas.onboarding import InvestorOnboardingRequest, FounderOnboardingRequest
 
 import logging
 from typing import Dict, Any
