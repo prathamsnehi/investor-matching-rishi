@@ -48,7 +48,7 @@ model Account {
   hashed_password      String                     
   token_version        Int      @default(1)       //jwt version
 
-  linkedin_profile_url String
+  linkedin_profile_url String?
   photo_url            String?  
   
   createdAt            DateTime @default(now())

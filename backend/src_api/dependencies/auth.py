@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from core.security import SECRET_KEY, ALGORITHM
+from src_api.core.security import SECRET_KEY, ALGORITHM
 
 from prisma_db.prisma_client import db
 

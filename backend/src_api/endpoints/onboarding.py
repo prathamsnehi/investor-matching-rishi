@@ -1,15 +1,18 @@
 from fastapi import APIRouter, HTTPException, status
 from prisma_db.prisma_client import db
 from src_api.schemas.onboarding import InvestorOnboardingRequest, FounderOnboardingRequest
+from src_api.core.security import SecurityEngine
 
 import logging
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
+auth = SecurityEngine()
 router = APIRouter()
 
 @router.post('/onboard_founder')
 async def onboard_founder(req: FounderOnboardingRequest) -> Dict[str, Any]:
+    hashed_password = auth.get_password_hash(req.password)
     try:
         new_founder = await db.client.account.create(
             data={
@@ -17,6 +20,7 @@ async def onboard_founder(req: FounderOnboardingRequest) -> Dict[str, Any]:
                 "full_name" : req.full_name,
                 "email_address" : req.email_address,
                 "mobile_number" : req.mobile_number,
+                "hashed_password" : hashed_password,
                 "linkedin_profile_url" : str(req.linkedin_profile_url) if req.linkedin_profile_url else None,
                 "photo_url" : req.photo_url,
                 "founderProfile" : {
@@ -48,6 +52,7 @@ async def onboard_founder(req: FounderOnboardingRequest) -> Dict[str, Any]:
 
 @router.post('/onboard_investor')
 async def onboard_investor(req: InvestorOnboardingRequest) -> Dict[str, Any]:
+    hashed_password = auth.get_password_hash(req.password)
     try:
         new_investor = await db.client.account.create(
             data={
@@ -55,6 +60,7 @@ async def onboard_investor(req: InvestorOnboardingRequest) -> Dict[str, Any]:
                 "full_name" : req.full_name,
                 "email_address" : req.email_address,
                 "mobile_number" : req.mobile_number,
+                "password" : hashed_password,
                 "linkedin_profile_url" : str(req.linkedin_profile_url) if req.linkedin_profile_url else None,
                 "photo_url" : req.photo_url,
                 "investorProfile": {

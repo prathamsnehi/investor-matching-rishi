@@ -36,6 +36,7 @@ class AccountBase(BaseModel):
     full_name: str
     email_address: EmailStr
     mobile_number: str
+    password: str
     linkedin_profile_url: Optional[HttpUrl] = None
     photo_url: Optional[str] = None
 

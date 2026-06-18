@@ -31,7 +31,7 @@ async def extract_text_from_upload(
         )
         response.raise_for_status()
         embedding_data = response.json()
-        embedding_vector = embedding_data.get("embedding")
+        embedding_vector = embedding_data.get("embeddings")
     
     try:
         vector_str = json.dumps(embedding_vector)
@@ -52,7 +52,7 @@ async def extract_text_from_upload(
             await db.client.execute_raw(
                 '''
                 UPDATE "InvestorProfile"
-                SET full_desc = $1,
+                SET brief_bio = $1,
                     embedding = $2::vector
                 WHERE id = $3
                 ''',

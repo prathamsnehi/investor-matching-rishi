@@ -41,7 +41,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -66,8 +66,13 @@ services:
     container_name: worker
     environment:
       - REDIS_URL=${REDIS_URL}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     depends_on:
       redis:
+        condition: service_healthy
+      db:
         condition: service_healthy
 
 volumes:

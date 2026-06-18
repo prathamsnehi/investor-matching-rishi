@@ -5,8 +5,8 @@ from slowapi.errors import RateLimitExceeded
 from src_api.endpoints.main_router import api_router
 from config.logger_config import FundmatchLogger
 from prisma_db.prisma_client import db
-from core.redis_client import redis_db
-from core.limiter import limiter
+from src_api.core.redis_client import redis_db
+from src_api.core.limiter import limiter
 
 import logging
 from contextlib import asynccontextmanager

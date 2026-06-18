@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
-from typing import Dict, Any
-from schemas.auth import LoginRequest, LoginResponse
-from core.security import SecurityEngine
-from core.limiter import limiter
+
+from src_api.schemas.auth import LoginRequest, LoginResponse
+from src_api.core.security import SecurityEngine
+from src_api.core.limiter import limiter
 from prisma_db.prisma_client import db
 
 import logging
