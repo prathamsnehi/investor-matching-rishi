@@ -100,3 +100,60 @@ Sample JSON Payload
   "max_cheque_inr": 50000000.0
 }
 ```
+
+
+### Authentication: Login Endpoint (`/login`)
+
+**Endpoint:** `POST /api/v1/auth/login`
+
+**Important Frontend Integration Note:** To comply with the OAuth2 security standard, this specific endpoint **strictly requires Form Data** (`application/x-www-form-urlencoded`), NOT standard JSON. Additionally, the user's email must be passed using the key `username`.
+
+#### Request Payload (Form Data)
+| Key | Type | Description |
+| :--- | :--- | :--- |
+| `username` | `string` | The user's registered email address. |
+| `password` | `string` | The user's plain-text password. |
+
+#### Response Schema (JSON)
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5c...",
+  "token_type": "bearer",
+  "email": "user@example.com",
+  "role": "FOUNDER" // or "INVESTOR"
+}
+```
+
+### React Native Integration Reference
+1. Axios Request Setup:
+
+```JavaScript
+import axios from 'axios';
+
+const loginUser = async (email, password) => {
+  const response = await axios.post('http://<API_URL>/api/v1/auth/login', 
+    {
+      username: email, // Must explicitly be 'username'
+      password: password
+    }, 
+    {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }
+  );
+  return response.data; 
+};
+```
+2. Token Storage & Usage (MMKV):
+
+```TypeScript
+// 1. Store the token after successful login
+mmkvStorage.set('access_token', response.data.access_token);
+mmkvStorage.set('user_role', response.data.role); 
+
+// 2. Attach to future protected API calls
+const token = mmkvStorage.getString('access_token');
+const headers = {
+  'Authorization': `Bearer ${token}`,
+  'Content-Type': 'application/json'
+};
+```

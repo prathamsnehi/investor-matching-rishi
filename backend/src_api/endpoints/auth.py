@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
+from fastapi.security import OAuth2PasswordRequestForm
 from typing import Dict, Any
 from schemas.auth import LoginRequest, LoginResponse
 from core.security import SecurityEngine
+from core.limiter import limiter
 from prisma_db.prisma_client import db
 
 import logging
@@ -12,12 +14,15 @@ auth = SecurityEngine()
 authRouter = APIRouter()
 
 @authRouter.post('/login', response_model=LoginResponse)
-async def login(creds: LoginRequest) -> LoginResponse:
+@limiter.limit("5/minute")
+async def login(request: Request, creds: OAuth2PasswordRequestForm = Depends()) -> LoginResponse:
+    #as per fastapi's login form, email is equivalent to username
+    #so, creds.username == creds.email
     user = await db.client.account.find_unique(
-        where={"email_address" : creds.email}
+        where={"email_address" : creds.username}
     )
     if not user or not auth.verify_password(creds.password, user.hashed_password):
-        logger.warning(f"Failed login attempt for: {creds.email}")
+        logger.warning(f"Failed login attempt for: {creds.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
