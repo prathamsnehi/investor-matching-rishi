@@ -1,89 +1,101 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from prisma_db.prisma_client import db
 from src_api.schemas.onboarding import InvestorOnboardingRequest, FounderOnboardingRequest
-from src_api.core.security import SecurityEngine
+from src_api.dependencies.auth import get_current_user
 
 import logging
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
-auth = SecurityEngine()
-router = APIRouter()
+onboardingRouter = APIRouter()
 
-@router.post('/onboard_founder')
-async def onboard_founder(req: FounderOnboardingRequest) -> Dict[str, Any]:
-    hashed_password = auth.get_password_hash(req.password)
-    try:
-        new_founder = await db.client.account.create(
-            data={
-                "role" : req.role,
-                "full_name" : req.full_name,
-                "email_address" : req.email_address,
-                "mobile_number" : req.mobile_number,
-                "hashed_password" : hashed_password,
-                "linkedin_profile_url" : str(req.linkedin_profile_url) if req.linkedin_profile_url else None,
-                "photo_url" : req.photo_url,
-                "founderProfile" : {
-                    "create" : {
-                        "startup_name" : req.startup_name,
-                        "one_line_desc" : req.one_line_desc,
-                        "full_desc" : req.full_desc,
-                        "stage" : req.stage,
-                        "trl" : req.trl,
-                        "target_raise_inr" : req.target_raise_inr,
-                        "min_cheque_inr" : req.min_cheque_inr,
-                    }
-                }
-            }
+@onboardingRouter.post("/investor")
+async def onboard_investor(
+    payload: InvestorOnboardingRequest,
+    current_user = Depends(get_current_user)
+) -> Dict[str, Any]:
+    if current_user.role != "INVESTOR":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Account is not registered as an investor"
         )
-        logger.info("User sucessfully created!")
-        return {
-            "status" : 200,
-            "message" : "User successfully created!",
-            "data" : new_founder,
-        }
-    except Exception as e:
-        logger.exception("Failed to add user")
+    
+    existing_profile = await db.client.investorprofile.find_unique(
+        where = {"account_id" : current_user.id}
+    )
+
+    if existing_profile:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to add user: {str(e)}"
-            )
-
-
-@router.post('/onboard_investor')
-async def onboard_investor(req: InvestorOnboardingRequest) -> Dict[str, Any]:
-    hashed_password = auth.get_password_hash(req.password)
+            detail="User already onboarded"
+        )
+    
     try:
-        new_investor = await db.client.account.create(
-            data={
-                "role" : req.role,
-                "full_name" : req.full_name,
-                "email_address" : req.email_address,
-                "mobile_number" : req.mobile_number,
-                "password" : hashed_password,
-                "linkedin_profile_url" : str(req.linkedin_profile_url) if req.linkedin_profile_url else None,
-                "photo_url" : req.photo_url,
-                "investorProfile": {
-                    "create": {
-                        "investor_type": req.investor_type,
-                        "brief_bio": req.brief_bio,
-                        "min_trl_accepted": req.min_trl_accepted,
-                        "min_cheque_inr": req.min_cheque_inr,
-                        "max_cheque_inr": req.max_cheque_inr,
-                        "preferred_stages": req.preferred_stages 
-                    }
-                }
+        new_profile = await db.client.investorprofile.create(
+            data = {
+                "account_id" : current_user.id,
+                "investor_type" : payload.investor_type,
+                "brief_bio" : payload.brief_bio,
+                "min_trl_accepted" : payload.min_trl_accepted,
+                "min_cheque_inr" : payload.min_cheque_inr,
+                "max_cheque_inr" : payload.max_cheque_inr,
+                "preferred_stages" : payload.preferred_stages
             }
         )
-        logger.info("User sucessfully created!")
+        logger.info(f"Profile created successfully for {current_user.email_address}")
         return {
-            "status" : 200,
-            "message" : "User successfully created!",
-            "data" : new_investor,
+            "status" : 201,
+            "message" : "profile created, onboarding complete"
         }
     except Exception as e:
-        logger.exception("Failed to add user")
+        logger.exception("Faied to create investor profile")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="database error while onboarding"
+        )
+
+@onboardingRouter.post("/founder")
+async def onboard_founder(
+    payload: FounderOnboardingRequest,
+    current_user = Depends(get_current_user)
+) -> Dict[str, Any]:
+    if current_user.role != "FOUNDER":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Account is not registered as a founder"
+        )
+    
+    existing_profile = await db.client.founderprofile.find_unique(
+        where = {"account_id" : current_user.id}
+    )
+
+    if existing_profile:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to add user: {str(e)}"
-            )
+            detail="User already onboarded"
+        )
+    
+    try:
+        new_profile = await db.client.founderprofile.create(
+            data = {
+                "account_id" : current_user.id,
+                "startup_name" : payload.startup_name,
+                "one_line_desc" : payload.one_line_desc,
+                "full_desc" : payload.full_desc,
+                "stage" : payload.stage,
+                "trl" : payload.trl,
+                "target_raise_inr" : payload.target_raise_inr,
+                "min_cheque_inr" : payload.min_cheque_inr
+            }
+        )
+        logger.info(f"Profile created successfully for {current_user.email_address}")
+        return {
+            "status" : 201,
+            "message" : "profile created, onboarding complete"
+        }
+    except Exception as e:
+        logger.exception("Faied to create founder profile")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="database error while onboarding"
+        )

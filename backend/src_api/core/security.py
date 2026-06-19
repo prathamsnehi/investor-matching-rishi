@@ -11,7 +11,7 @@ ACCESS_TOKEN_EXPIRY_MINUTES = 60 * 24
 class SecurityEngine:
 
     def __init__(self) -> None:
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
 
     def get_password_hash(self, password: str) -> str:
         """Takes a plaintext password and returns a secure salted bcrypt hash"""

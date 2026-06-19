@@ -1,15 +1,11 @@
-from pydantic import BaseModel, EmailStr, HttpUrl
+from pydantic import BaseModel, EmailStr, HttpUrl, Field
+from src_api.schemas.auth import AccountBase, AccountRole
 from enum import Enum
-from typing import List, Dict, Any, Optional
-import uuid
-from datetime import datetime
+from typing import List, Optional
+
 
 
 #database enums
-
-class AccountRoleEnum(str, Enum):
-    FOUNDER = "FOUNDER"
-    INVESTOR = "INVESTOR"
 
 class FundingStageEnum(str, Enum):
     PRE_SEED = "PRE_SEED"
@@ -30,18 +26,8 @@ class InvestorTypeEnum(str, Enum):
 
 #actual request/response schemas
 
-class AccountBase(BaseModel):
-    role: AccountRoleEnum
-
-    full_name: str
-    email_address: EmailStr
-    mobile_number: str
-    password: str
-    linkedin_profile_url: Optional[HttpUrl] = None
-    photo_url: Optional[str] = None
-
-class FounderOnboardingRequest(AccountBase):
-    role: AccountRoleEnum = AccountRoleEnum.FOUNDER
+class FounderOnboardingRequest(BaseModel):
+    role: AccountRole = AccountRole.FOUNDER
 
     startup_name: str
     one_line_desc: str
@@ -51,8 +37,8 @@ class FounderOnboardingRequest(AccountBase):
     target_raise_inr: float
     min_cheque_inr: float
 
-class InvestorOnboardingRequest(AccountBase):
-    role: AccountRoleEnum = AccountRoleEnum.INVESTOR
+class InvestorOnboardingRequest(BaseModel):
+    role: AccountRole = AccountRole.INVESTOR
 
     investor_type: InvestorTypeEnum
     brief_bio: str

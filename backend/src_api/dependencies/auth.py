@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from src_api.core.security import SECRET_KEY, ALGORITHM
+from src_api.schemas.auth import AccountRole
 
 from prisma_db.prisma_client import db
 
@@ -50,3 +51,29 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         )
     
     return user
+
+
+async def get_fully_onboarded_user(current_user = Depends(get_current_user)):
+    user_with_profiles = await db.client.find_unique(
+        where={"id" : current_user.id},
+        include={
+            "investorProfile" : True,
+            "founderProfile" : True
+        }
+    )
+
+    if not user_with_profiles:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+    
+    if user_with_profiles.role == AccountRole.INVESTOR and not user_with_profiles.investorProfile:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Investor onboarding incomplete"
+        )
+    if user_with_profiles.role == AccountRole.FOUNDER and not user_with_profiles.founderProfile:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, 
+            detail="Founder onboarding incomplete."
+        )
+
+    return user_with_profiles
