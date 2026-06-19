@@ -32,3 +32,7 @@ class AccountBase(BaseModel):
     password: str = Field(min_length=8, max_length=32)
     linkedin_profile_url: Optional[HttpUrl] = None
     photo_url: Optional[str] = None
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str = Field(..., min_length=8)

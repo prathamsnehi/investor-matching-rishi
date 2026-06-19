@@ -1,11 +1,13 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
-from src_api.schemas.auth import LoginResponse, SignupResponse, AccountBase
+from src_api.schemas.auth import LoginResponse, SignupResponse, AccountBase, ChangePasswordRequest
 from src_api.core.security import SecurityEngine
 from src_api.core.limiter import limiter
+from src_api.dependencies.auth import get_current_user
 from prisma_db.prisma_client import db
 
+from typing import Dict, Any
 import logging
 
 logger = logging.getLogger(__name__)
@@ -93,3 +95,57 @@ async def signup(request: Request, creds: AccountBase) -> SignupResponse:
         email=creds.email_address,
         user_id=new_user.id
     )
+
+
+@authRouter.post("/logout")
+async def logout(current_user = Depends(get_current_user)) -> Dict[str, Any]:
+    try:
+        await db.client.account.update(
+            where={"id":current_user.id},
+            data={"token_version" : {"increment" : 1}}
+        )
+        logger.info("Logged out successfully")
+
+        return {
+            "status" : 200,
+            "message" : "success"
+        }
+    except Exception as e:
+        logger.exception("Error while logging out")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="error while logging out"
+        )
+    
+@authRouter.post("/change_password")
+async def change_password(payload: ChangePasswordRequest, current_user = Depends(get_current_user)) -> Dict[str, Any]:
+    verified: bool = auth.verify_password(payload.old_password, current_user.hashed_password)
+
+    if not verified:
+        logger.error("incorrect password")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password"
+        )
+    else:
+        hashed_pwd = auth.get_password_hash(payload.new_password)
+        try:
+            await db.client.account.update(
+                where={"id": current_user.id},
+                data={
+                    "hashed_password": hashed_pwd,
+                    "token_version": {"increment": 1}
+                }
+            )
+            logger.info("Password reset successfully")
+
+            return {
+                "status" : 200,
+                "message" : "success"
+            }
+        except Exception as e:
+            logger.exception("Failed to change password")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to change password"
+            )
