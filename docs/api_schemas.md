@@ -1,121 +1,77 @@
-# API Schemas: Onboarding Endpoints
-1. Allowed Enums
-### Frontend Note: These should be mapped directly to TypeScript enum or union types. The backend will strictly validate against these exact string values.
+# Fundmatch API Schema Documentation (v1)
+
+### Base URL
+`http://<YOUR_SERVER_IP>:8000/api/v1`
+
+### Authentication Security
+Routes marked with **Requires Auth** expect a valid JWT token in the HTTP Headers:
+
+```json
+{
+  "Authorization": "Bearer <your_access_token>"
+}
+```
+
+### Allowed Enums
+
+Frontend Note: These should be mapped directly to TypeScript enum or union types. The backend will strictly validate against these exact string values.
 
 AccountRole: "FOUNDER" | "INVESTOR"
-
 FundingStage: "PRE_SEED" | "SEED" | "PRE_SERIES_A"
-
 TRL (Tech Readiness Level): "IDEA" | "PROTOTYPE" | "PILOT" | "LIVE_PRODUCT" | "SCALING"
+InvestorType: "ANGEL" | "VC_FUND" | "FAMILY_OFFICE" | "SYNDICATE"
 
-InvestorType: "ANGEL" | "VC_FUND" | "FAMILY_OFFICE"
+## 1. Authentication Endpoints (/auth)
 
-2. Founder Onboarding
-Endpoint: POST /api/v1/onboarding/onboard_founder
+### 1.1 Signup
 
-## Schema Definition
+Creates a base user account. Must be followed by the appropriate Onboarding endpoint.
 
-```JavaScript
-{
-  // --- Account Base Fields ---
-  "role": "FOUNDER",                 // REQUIRED: Must be exactly "FOUNDER"
-  "full_name": "string",             // REQUIRED
-  "email_address": "string",         // REQUIRED: Valid email format
-  "mobile_number": "string",         // REQUIRED: String to preserve country codes (e.g. "+91")
-  "linkedin_profile_url": "string",  // OPTIONAL: Valid URL format or null
-  "photo_url": "string",             // OPTIONAL: Valid URL/path or null
-  
-  // --- Founder Specific Fields ---
-  "startup_name": "string",          // REQUIRED
-  "one_line_desc": "string",         // REQUIRED
-  "full_desc": "string",             // REQUIRED
-  "stage": "FundingStage",           // REQUIRED: Enum value
-  "trl": "TRL",                      // REQUIRED: Enum value
-  "target_raise_inr": number,        // REQUIRED: Float
-  "min_cheque_inr": number           // REQUIRED: Float
-}
-```
-Sample JSON Payload
+Endpoint: POST /auth/signupRequires 
+Auth: No
+Rate Limit: 5 requests / minute per IP
+
+Request Body (JSON)
 
 ```JSON
 {
-  "role": "FOUNDER",
-  "full_name": "Rishi Goyal",
-  "email_address": "rishi@example.com",
-  "mobile_number": "+919876543210",
-  "linkedin_profile_url": "https://linkedin.com/in/rishi-goyal-1a4597238",
-  "photo_url": null,
-  "startup_name": "Fundmatch",
-  "one_line_desc": "The future of Founder-Investor matchmaking in India.",
-  "full_desc": "A digital platform that matches founders and investors based on fit and investment preferences using a curated ML engine...",
-  "stage": "PRE_SEED",
-  "trl": "PROTOTYPE",
-  "target_raise_inr": 20000000.0,
-  "min_cheque_inr": 1000000.0
+  "full_name": "string",
+  "email_address": "string (email format)",
+  "mobile_number": "string (preserve country codes, e.g., +91)",
+  "password": "string (min 8 chars)",
+  "role": "FOUNDER | INVESTOR",
+  "linkedin_profile_url": "string (optional valid URL or null)"
 }
+Response (201 Created)
 ```
-3. Investor Onboarding
-Endpoint: POST /api/v1/onboarding/onboard_investor
-
-Schema Definition
-
-```JavaScript
-{
-  // --- Account Base Fields ---
-  "role": "INVESTOR",                // REQUIRED: Must be exactly "INVESTOR"
-  "full_name": "string",             // REQUIRED
-  "email_address": "string",         // REQUIRED: Valid email format
-  "mobile_number": "string",         // REQUIRED: String to preserve country codes
-  "linkedin_profile_url": "string",  // OPTIONAL: Valid URL format or null
-  "photo_url": "string",             // OPTIONAL: Valid URL/path or null
-  
-  // --- Investor Specific Fields ---
-  "investor_type": "InvestorType",   // REQUIRED: Enum value
-  "brief_bio": "string",             // REQUIRED
-  "preferred_stages": ["FundingStage"], // REQUIRED: Array of Enum strings
-  "min_trl_accepted": "TRL",         // REQUIRED: Enum value
-  "min_cheque_inr": number,          // REQUIRED: Float
-  "max_cheque_inr": number           // REQUIRED: Float
-}
-```
-
-Sample JSON Payload
 
 ```JSON
 {
-  "role": "INVESTOR",
-  "full_name": "Priya Sharma",
-  "email_address": "priya.angel@example.com",
-  "mobile_number": "+919988776655",
-  "linkedin_profile_url": "https://linkedin.com/in/priyasharma",
-  "photo_url": "https://s3.aws.com/bucket/priya.jpg",
-  "investor_type": "ANGEL",
-  "brief_bio": "Active Indian angel investing in early-stage tech and consumer products. Looking to write 2-10 cheques per year.",
-  "preferred_stages": [
-    "PRE_SEED", 
-    "SEED"
-  ],
-  "min_trl_accepted": "PROTOTYPE",
-  "min_cheque_inr": 5000000.0,
-  "max_cheque_inr": 50000000.0
+  "status": 201,
+  "message": "success",
+  "email": "user@example.com",
+  "user_id": "uuid-string"
 }
 ```
 
+### 1.2 Login
+Authenticates a user and issues a stateless JWT.
 
-### Authentication: Login Endpoint (`/login`)
+#### Endpoint: POST /auth/login
+#### Requires Auth: No
+#### Rate Limit: 5 requests / minute per IP
 
-**Endpoint:** `POST /api/v1/auth/login`
+IMPORTANT: To comply with the OAuth2 security standard, this specific endpoint strictly requires Form Data (application/x-www-form-urlencoded), NOT standard JSON. Additionally, the user's email must be passed using the key username.
 
-**Important Frontend Integration Note:** To comply with the OAuth2 security standard, this specific endpoint **strictly requires Form Data** (`application/x-www-form-urlencoded`), NOT standard JSON. Additionally, the user's email must be passed using the key `username`.
+Request Payload (Form Data)
 
-#### Request Payload (Form Data)
-| Key | Type | Description |
-| :--- | :--- | :--- |
-| `username` | `string` | The user's registered email address. |
-| `password` | `string` | The user's plain-text password. |
+Key | Type | Description |
+username | string | The user's registered email address.
+password | string | The user's plain-text password.
 
-#### Response Schema (JSON)
-```json
+Response (200 OK)
+
+```JSON
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5c...",
   "token_type": "bearer",
@@ -123,9 +79,8 @@ Sample JSON Payload
   "role": "FOUNDER" // or "INVESTOR"
 }
 ```
-
-### React Native Integration Reference
-1. Axios Request Setup:
+React Native Integration Reference
+Axios Request Setup:
 
 ```JavaScript
 import axios from 'axios';
@@ -143,7 +98,8 @@ const loginUser = async (email, password) => {
   return response.data; 
 };
 ```
-2. Token Storage & Usage (MMKV):
+
+Token Storage & Usage (MMKV):
 
 ```TypeScript
 // 1. Store the token after successful login
@@ -156,4 +112,105 @@ const headers = {
   'Authorization': `Bearer ${token}`,
   'Content-Type': 'application/json'
 };
+```
+
+### 1.3 Logout
+
+Globally invalidates all active sessions for the user by rotating their token version.
+
+#### Endpoint: POST /auth/logout
+#### Requires Auth: Yes
+#### Request Body(None)
+
+Response (200 OK)
+
+```JSON{
+  "status": 200,
+  "message": "success"
+}
+```
+
+### 1.4 Change Password
+
+Updates the user's password and simultaneously logs them out of all other devices.
+
+#### Endpoint: POST /auth/change_password
+#### Requires Auth: Yes
+
+Request Body (JSON)
+
+```JSON
+{
+  "old_password": "string",
+  "new_password": "string (min 8 chars)"
+}
+```
+
+Response (200 OK)
+
+```JSON
+{
+  "status": 200,
+  "message": "success"
+}
+```
+
+## 2. Onboarding Endpoints (/onboarding)
+
+### 2.1 Onboard Investor
+
+Creates the specific investor profile for a newly signed-up user.
+
+Endpoint: POST /onboarding/investor
+Requires Auth: Yes (User must have role: INVESTOR and send JWT in headers)
+
+Request Body (JSON)
+```JSON
+{
+  "investor_type": "ANGEL | VC_FUND | FAMILY_OFFICE | SYNDICATE",
+  "brief_bio": "string",
+  "min_trl_accepted": "IDEA | PROTOTYPE | PILOT | LIVE_PRODUCT | SCALING",
+  "min_cheque_inr": 1000000.0,
+  "max_cheque_inr": 50000000.0,
+  "preferred_stages": ["PRE_SEED", "SEED"]
+}
+```
+
+Response (201 Created)
+
+```JSON
+{
+  "status": 201,
+  "message": "profile created, onboarding complete"
+}
+```
+
+### 2.2 Onboard Founder
+
+Creates the specific startup profile for a newly signed-up user.
+
+#### Endpoint: POST /onboarding/founder
+#### Requires Auth: Yes (User must have role: FOUNDER and send JWT in headers)
+
+Request Body (JSON)
+
+```JSON
+{
+  "startup_name": "string",
+  "one_line_desc": "string",
+  "full_desc": "string",
+  "stage": "PRE_SEED | SEED | PRE_SERIES_A",
+  "trl": "IDEA | PROTOTYPE | PILOT | LIVE_PRODUCT | SCALING",
+  "target_raise_inr": 20000000.0,
+  "min_cheque_inr": 1000000.0
+}
+```
+
+Response (201 Created)
+
+```JSON
+{
+  "status": 201,
+  "message": "profile created, onboarding complete"
+}
 ```
