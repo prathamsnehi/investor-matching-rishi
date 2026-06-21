@@ -11,10 +11,13 @@ export interface FounderOnboardingData {
   targetMarket?: string[];
   fundingHistory?: string[];
   investorType?: string[];
-  revenue?: string[];
   fundingNeed?: string[];
+  description?: string;
+  metrics?: string;
+  revenue?: string[];
   runway?: string[];
   legal?: string[];
+  pitchDeckUri?: string;
 }
 
 export interface InvestorOnboardingData {

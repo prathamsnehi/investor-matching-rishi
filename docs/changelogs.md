@@ -1,3 +1,7 @@
+## 1.0.27:
+
+- add frontend page to upload pitch deck
+
 ## 1.0.9
 
 - initialize prisma db, with an initial Account schema

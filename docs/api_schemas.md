@@ -1,9 +1,11 @@
 # Fundmatch API Schema Documentation (v1)
 
 ### Base URL
+
 `http://<YOUR_SERVER_IP>:8000/api/v1`
 
 ### Authentication Security
+
 Routes marked with **Requires Auth** expect a valid JWT token in the HTTP Headers:
 
 ```json
@@ -27,13 +29,13 @@ InvestorType: "ANGEL" | "VC_FUND" | "FAMILY_OFFICE" | "SYNDICATE"
 
 Creates a base user account. Must be followed by the appropriate Onboarding endpoint.
 
-Endpoint: POST /auth/signupRequires 
+Endpoint: POST /auth/signupRequires
 Auth: No
 Rate Limit: 5 requests / minute per IP
 
 Request Body (JSON)
 
-```JSON
+```javascript
 {
   "full_name": "string",
   "email_address": "string (email format)",
@@ -45,7 +47,7 @@ Request Body (JSON)
 Response (201 Created)
 ```
 
-```JSON
+```javascript
 {
   "status": 201,
   "message": "success",
@@ -55,10 +57,13 @@ Response (201 Created)
 ```
 
 ### 1.2 Login
+
 Authenticates a user and issues a stateless JWT.
 
 #### Endpoint: POST /auth/login
+
 #### Requires Auth: No
+
 #### Rate Limit: 5 requests / minute per IP
 
 IMPORTANT: To comply with the OAuth2 security standard, this specific endpoint strictly requires Form Data (application/x-www-form-urlencoded), NOT standard JSON. Additionally, the user's email must be passed using the key username.
@@ -71,7 +76,7 @@ password | string | The user's plain-text password.
 
 Response (200 OK)
 
-```JSON
+```javascript
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5c...",
   "token_type": "bearer",
@@ -79,38 +84,40 @@ Response (200 OK)
   "role": "FOUNDER" // or "INVESTOR"
 }
 ```
+
 React Native Integration Reference
 Axios Request Setup:
 
-```JavaScript
-import axios from 'axios';
+```javascript
+import axios from "axios";
 
 const loginUser = async (email, password) => {
-  const response = await axios.post('http://<API_URL>/api/v1/auth/login', 
+  const response = await axios.post(
+    "http://<API_URL>/api/v1/auth/login",
     {
       username: email, // Must explicitly be 'username'
-      password: password
-    }, 
+      password: password,
+    },
     {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    },
   );
-  return response.data; 
+  return response.data;
 };
 ```
 
 Token Storage & Usage (MMKV):
 
-```TypeScript
+```javascript
 // 1. Store the token after successful login
-mmkvStorage.set('access_token', response.data.access_token);
-mmkvStorage.set('user_role', response.data.role); 
+mmkvStorage.set("access_token", response.data.access_token);
+mmkvStorage.set("user_role", response.data.role);
 
 // 2. Attach to future protected API calls
-const token = mmkvStorage.getString('access_token');
+const token = mmkvStorage.getString("access_token");
 const headers = {
-  'Authorization': `Bearer ${token}`,
-  'Content-Type': 'application/json'
+  Authorization: `Bearer ${token}`,
+  "Content-Type": "application/json",
 };
 ```
 
@@ -119,12 +126,14 @@ const headers = {
 Globally invalidates all active sessions for the user by rotating their token version.
 
 #### Endpoint: POST /auth/logout
+
 #### Requires Auth: Yes
+
 #### Request Body(None)
 
 Response (200 OK)
 
-```JSON{
+```javascript
   "status": 200,
   "message": "success"
 }
@@ -135,11 +144,12 @@ Response (200 OK)
 Updates the user's password and simultaneously logs them out of all other devices.
 
 #### Endpoint: POST /auth/change_password
+
 #### Requires Auth: Yes
 
 Request Body (JSON)
 
-```JSON
+```javascript
 {
   "old_password": "string",
   "new_password": "string (min 8 chars)"
@@ -148,7 +158,7 @@ Request Body (JSON)
 
 Response (200 OK)
 
-```JSON
+```javascript
 {
   "status": 200,
   "message": "success"
@@ -165,7 +175,8 @@ Endpoint: POST /onboarding/investor
 Requires Auth: Yes (User must have role: INVESTOR and send JWT in headers)
 
 Request Body (JSON)
-```JSON
+
+```javascript
 {
   "investor_type": "ANGEL | VC_FUND | FAMILY_OFFICE | SYNDICATE",
   "brief_bio": "string",
@@ -178,7 +189,7 @@ Request Body (JSON)
 
 Response (201 Created)
 
-```JSON
+```javascript
 {
   "status": 201,
   "message": "profile created, onboarding complete"
@@ -190,11 +201,12 @@ Response (201 Created)
 Creates the specific startup profile for a newly signed-up user.
 
 #### Endpoint: POST /onboarding/founder
+
 #### Requires Auth: Yes (User must have role: FOUNDER and send JWT in headers)
 
 Request Body (JSON)
 
-```JSON
+```javascript
 {
   "startup_name": "string",
   "one_line_desc": "string",
@@ -208,7 +220,7 @@ Request Body (JSON)
 
 Response (201 Created)
 
-```JSON
+```javascript
 {
   "status": 201,
   "message": "profile created, onboarding complete"

@@ -5,7 +5,7 @@ import { SelectionGroup } from '@/components/onboarding/SelectionGroup';
 import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useThemeColor } from '@/utils/contexts/ColorProvider';
-import { getInternalFounderData, setInternalFounderData, setUserOnboardingStatus } from '@/utils/storage/onboarding';
+import { getInternalFounderData, setInternalFounderData } from '@/utils/storage/onboarding';
 import { FounderOnboardingData } from '@/utils/storage/types';
 import { validateMandatoryFields, showValidationError } from '@/utils/validation';
 
@@ -23,7 +23,7 @@ const LEGAL_STATUSES = [
 ];
 
 const STEP = 4;
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 export default function AdditionalInfoScreen() {
   const router = useRouter();
@@ -46,7 +46,7 @@ export default function AdditionalInfoScreen() {
     layoutMap.current[field] = event.nativeEvent.layout.y;
   };
 
-  const handleComplete = () => {
+  const handleNext = () => {
     const data = { revenue, runway, legal };
     const fields = ['revenue', 'runway', 'legal'];
     
@@ -65,8 +65,7 @@ export default function AdditionalInfoScreen() {
         revenue, runway, legal
     };
     setInternalFounderData(update);
-    setUserOnboardingStatus(); // Mark as onboarded
-    router.replace('/(tabs)/discover');
+    router.push('/(onboarding)/founder/5-pitch-deck');
   };
 
   return (
@@ -112,9 +111,9 @@ export default function AdditionalInfoScreen() {
             style={{ flex: 1, marginRight: 12 }}
            />
            <Button 
-            title="Complete" 
+            title="Next" 
             variant="primary" 
-            onPress={handleComplete} 
+            onPress={handleNext} 
             style={{ flex: 1 }}
            />
         </View>
