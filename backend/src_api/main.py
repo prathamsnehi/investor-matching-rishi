@@ -8,6 +8,7 @@ from prisma_db.prisma_client import db
 from src_api.core.redis_client import redis_db
 from src_api.core.limiter import limiter
 
+from typing import Dict, Any
 import logging
 from contextlib import asynccontextmanager
 
@@ -43,5 +44,36 @@ def health_check():
         "status" : "healthy"
     }
 
+# -- ADMIN ENDPOINTS --
+# ONLY FOR DEV PURPOSES, SHOULD NOT BE INCLUDED IN PROD
+
+@app.get("/all_users")
+async def show_all_users() -> Dict[str, Any]:
+    try:
+        users = await db.client.account.find_many(
+            order={
+                "id" : "asc"
+            }
+        )
+    except Exception as e:
+        logger.exception("Error while fetching accounts")
+        raise
+
+    resp = {
+        "accounts" : []
+    }
+
+    for user in users:
+        row = {
+            "id" : f"{user.id}",
+            "name" : f"{user.full_name}",
+            "role" : f"{user.role}"
+        }
+        resp["accounts"].append(row)
+    
+    return {
+        "status" : "ok",
+        "response" : resp
+    }
 
 app.include_router(api_router, prefix="/api/v1")

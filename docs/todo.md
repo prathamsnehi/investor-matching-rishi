@@ -6,4 +6,12 @@ Prath:
 - implement login auth flow screen
 - in profile, add thigns like ability to change fields, change password, sign out
 
-parv: dense/sparse separation, prisma orm implementation
+parv: 
+ - sparse embedding implementation
+ - For preprocessing pipeline: 
+    1. Cap chunks per document 
+    2. deduplication of near identical chunks
+    3. Ignore low value chunks, use minimum similarity threshold
+ - build inference pipeline
+ - add all helpers for inference
+ - replace math with numpy

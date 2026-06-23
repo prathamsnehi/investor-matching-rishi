@@ -22,16 +22,28 @@ async def extract_text_from_upload(
     text = extractor.extract_text()
     
     async with httpx.AsyncClient() as client:
-        response = await client.post(
+        dense_response = await client.post(
             "http://ml:8000/ml_api/v1/vectoriser/embed",
             json={
                 "text" : text,
             },
             timeout=30.0,
         )
-        response.raise_for_status()
-        embedding_data = response.json()
+        dense_response.raise_for_status()
+        embedding_data = dense_response.json()
         embedding_vector = embedding_data.get("embeddings")
+
+    async with httpx.AsyncClient() as client:
+        fts_query_response = await client.post(
+            "http://ml:8000/ml_api/v1/vectoriser/extract_fts_keywords",
+            json={
+                "text" : text
+            },
+            timeout=30.0
+        )
+        fts_query_response.raise_for_status()
+        fts_keywords_data = fts_query_response.json()
+        fts_keywords = fts_keywords_data.get("fts_query")
     
     try:
         vector_str = json.dumps(embedding_vector)
@@ -67,7 +79,7 @@ async def extract_text_from_upload(
         logger.exception("Database update failed")
         raise RuntimeError(f"Database update failed: {str(e)}")
 
-    #REMAINING TASK: MAP PROFILES AND THEIR UUIDs TO ACTUAL DB ROWS
+    #REMAINING TASK(S): MAP PROFILES AND THEIR UUIDs TO ACTUAL DB ROWS, SAVE VECTORS TO SEPARATE TABLES
     #THIS IS A STUB, ONLY VECTOR INSERTION LOGIC PRESENT ATM
 
     return {

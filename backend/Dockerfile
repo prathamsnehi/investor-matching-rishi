@@ -24,4 +24,4 @@ RUN uv run prisma generate --schema=prisma_db/schema.prisma
 
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "src_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uv run prisma db push --schema=prisma_db/schema.prisma && uv run uvicorn src_api.main:app --host 0.0.0.0 --port 8000"]

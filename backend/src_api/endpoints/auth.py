@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
+from prisma.errors import UniqueViolationError
 
 from src_api.schemas.auth import LoginResponse, SignupResponse, AccountBase, ChangePasswordRequest
 from src_api.core.security import SecurityEngine
@@ -62,26 +63,32 @@ async def signup(request: Request, creds: AccountBase) -> SignupResponse:
     )
     if user:
         logger.warning("user already exists")
+        del user
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to sign up, user already exists!"
         )
     
-    del user
-
     hashed_password = auth.get_password_hash(creds.password)
+    creds.password = hashed_password
+    user_data = creds.model_dump(mode='json', exclude_unset=True)
+
+    if "password" in user_data:
+        del user_data["password"]
+
+    user_data["hashed_password"] = hashed_password
+
     try:
         new_user = await db.client.account.create(
-            data={
-                "role" : creds.role,
-                "full_name" : creds.full_name,
-                "email_address" : creds.email_address,
-                "mobile_number" : creds.mobile_number,
-                "hashed_password" : hashed_password,
-                "linkedin_profile_url" : creds.linkedin_profile_url if creds.linkedin_profile_url else None,
-            }
+            data=user_data
         )
         logger.info(f"User successfully created for {creds.email_address}")
+    except UniqueViolationError:
+        logger.warning(f"Race condition caught: user {creds.email_address} created simultaneously")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to sign up, user already exists"
+        )
     except Exception as e:
         logger.exception("Failed to create user")
         raise HTTPException(

@@ -6,10 +6,12 @@ generator client {
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [vector] // Enables pgvector
+  extensions = [vector]
 }
 
-//enums
+// --------------------
+// Enums
+// --------------------
 
 enum AccountRole {
   FOUNDER
@@ -31,108 +33,212 @@ enum FundingStage {
 }
 
 enum InteractionAction {
-  PASS           // Translates to y = 0 for ML training
-  RIGHT_SWIPE    // Translates to y = 1 for ML training
-  INTRO_REQUEST  // Translates to y = 1 for ML training
+  PASS
+  RIGHT_SWIPE
+  INTRO_REQUEST
 }
 
-//core models
+enum DocumentKind {
+  FOUNDER_PITCH_DECK
+  INVESTOR_THESIS
+  FOUNDER_PROFILE_TEXT
+  INVESTOR_PROFILE_TEXT
+  GENERATED_SUMMARY
+  OTHER
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum ChunkKind {
+  TITLE
+  BODY
+  SLIDE
+  SECTION
+  PROBLEM
+  SOLUTION
+  MARKET
+  TRACTION
+  TEAM
+  FINANCIALS
+  THESIS
+  SUMMARY
+  OTHER
+}
+
+// --------------------
+// Core Models
+// --------------------
 
 model Account {
-  id                   String   @id @default(uuid())
+  id                   String      @id @default(uuid())
   role                 AccountRole
   full_name            String
-  email_address        String   @unique
-  mobile_number        String   @unique
+  email_address        String      @unique
+  mobile_number        String      @unique
 
-  hashed_password      String                     
-  token_version        Int      @default(1)       //jwt version
+  hashed_password      String
+  token_version        Int         @default(1)
 
   linkedin_profile_url String?
-  photo_url            String?  
-  
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  photo_url            String?
+
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 
   founderProfile       FounderProfile?
   investorProfile      InvestorProfile?
+
+  uploadedDocuments    UploadedDocument[]
 }
 
 model FounderProfile {
-  id                   String   @id @default(uuid())
-  accountId            String   @unique
-  account              Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id                   String       @id @default(uuid())
+  accountId            String       @unique
+  account              Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
-  // 02: Startup Identity
   startup_name         String
-  one_line_desc        String   @db.VarChar(140)
+  one_line_desc        String       @db.VarChar(140)
   full_desc            String
-  
-  // 03 & 04: Hard Filter Fields
+
   stage                FundingStage
   trl                  TRL
   target_raise_inr     Float
   min_cheque_inr       Float
 
-  // ML / Semantic Field
-  // Stores the embedding of the combined startup text (desc, bios, etc.)
-  // Assuming a 384-dimensional model like all-MiniLM-L6-v2
-  embedding            Unsupported("vector(384)")?
-
-  // Relationships
   receivedInteractions Interaction[] @relation("ReceivedInteractions")
-  
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  
-  // Note: Add remaining basic text fields (website, team size, etc.) here.
+
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 }
 
 model InvestorProfile {
-  id                   String   @id @default(uuid())
-  accountId            String   @unique
-  account              Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id                    String       @id @default(uuid())
+  accountId             String       @unique
+  account               Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
-  // 02: Investor Background
-  investor_type        String
-  brief_bio            String
+  investor_type         String
+  brief_bio             String
 
-  // 03 & 04: Hard Filter Preferences
-  preferred_stages     FundingStage[] // Array of accepted stages
-  min_trl_accepted     TRL
-  min_cheque_inr       Float
-  max_cheque_inr       Float
+  preferred_stages      FundingStage[]
+  min_trl_accepted      TRL
+  min_cheque_inr        Float
+  max_cheque_inr        Float
 
-  // ML / Semantic Field
-  embedding            Unsupported("vector(384)")?
-
-  // Relationships
   initiatedInteractions Interaction[] @relation("InitiatedInteractions")
 
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  
-  // Note: Add remaining arrays (sectors, business models) here.
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
 }
 
-// --- MLOps / TELEMETRY MODEL ---
+// --------------------
+// Document + Chunking Layer
+// --------------------
+
+model UploadedDocument {
+  id                  String          @id @default(uuid())
+
+  accountId           String
+  account             Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  document_kind       DocumentKind
+  status              DocumentStatus  @default(UPLOADED)
+
+  original_filename   String?
+  storage_url         String?
+  mime_type           String?
+
+  // For deduplication. Same user uploading same deck again should not create duplicate artifacts.
+  sha256_hash         String?         @db.VarChar(64)
+
+  extraction_model    String?
+  extraction_version  Int             @default(1)
+
+  error_message       String?
+
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  processedAt         DateTime?
+
+  chunks              DocumentChunk[]
+
+  @@index([accountId, document_kind])
+  @@index([status])
+  @@unique([accountId, sha256_hash])
+}
+
+model DocumentChunk {
+  id              String             @id @default(uuid())
+
+  documentId      String
+  document        UploadedDocument   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  chunk_index     Int
+  chunk_text      String             @db.Text
+
+  token_count     Int?
+  char_start      Int?
+  char_end        Int?
+
+  source_page     Int?
+  source_slide    Int?
+
+  chunk_kind      ChunkKind          @default(OTHER)
+
+  // Useful for deduping repeated slide slogans / repeated legal disclaimers.
+  text_hash       String?            @db.VarChar(64)
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  embeddings      ChunkEmbedding[]
+
+  @@unique([documentId, chunk_index])
+  @@index([documentId])
+  @@index([chunk_kind])
+}
+
+model ChunkEmbedding {
+  id                  String                  @id @default(uuid())
+
+  chunkId             String
+  chunk               DocumentChunk           @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+
+  embedding_model     String
+  embedding_version   Int                     @default(1)
+  embedding_dim       Int                     @default(384)
+
+  embedding           Unsupported("vector(384)")
+
+  createdAt           DateTime                @default(now())
+
+  @@unique([chunkId, embedding_model, embedding_version])
+  @@index([chunkId])
+  @@index([embedding_model, embedding_version])
+}
+
+// --------------------
+// MLOps / Telemetry
+// --------------------
 
 model Interaction {
-  id               String            @id @default(uuid())
-  
+  id               String             @id @default(uuid())
+
   investorId       String
-  investor         InvestorProfile   @relation("InitiatedInteractions", fields: [investorId], references: [id])
-  
+  investor         InvestorProfile    @relation("InitiatedInteractions", fields: [investorId], references: [id])
+
   founderId        String
-  founder          FounderProfile    @relation("ReceivedInteractions", fields: [founderId], references: [id])
-  
+  founder          FounderProfile     @relation("ReceivedInteractions", fields: [founderId], references: [id])
+
   action           InteractionAction
-  
-  // Snapshot of the ML confidence score at the exact time of the swipe.
-  // Critical for detecting "Model Drift" over time.
-  ml_score_at_time Float?            
 
-  createdAt        DateTime          @default(now())
+  ml_score_at_time Float?
 
-  @@unique([investorId, founderId]) // Prevents duplicate swipe records
+  createdAt        DateTime           @default(now())
+
+  @@unique([investorId, founderId])
 }
