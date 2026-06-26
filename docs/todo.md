@@ -15,3 +15,4 @@ parv:
  - build inference pipeline
  - add all helpers for inference
  - replace math with numpy
+ - upload chunking and validation
