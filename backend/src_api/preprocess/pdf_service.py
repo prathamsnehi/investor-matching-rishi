@@ -71,20 +71,3 @@ class PDFExtractionService:
         
 
 
-
-
-
-
-
-
-
-    """
-        text_parts: List[str] = []
-
-        with fitz.open(self.filepath) as doc:
-            for page in doc:
-                text_parts.append(page.get_text())
-
-        logger.info("Text extracted from PDF")
-        return "\n".join(text_parts)
-    """
