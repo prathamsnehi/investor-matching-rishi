@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,11 +11,17 @@ import {
   setInternalFounderData,
   setUserOnboardingStatus,
 } from '@/utils/storage/onboarding';
-import { getUserId } from '@/utils/storage/auth';
 import { submitFounderOnboarding, FounderOnboardingRequest } from '@/utils/api/onboarding';
-import { uploadPitchDeck } from '@/utils/firebase/storage';
+import { uploadAndIngestPitchDeck } from '@/utils/api/ingestion';
 import { showError } from '@/utils/validation';
 import { ApiError } from '@/utils/api/client';
+
+interface PickedDeck {
+  uri: string;
+  name: string;
+  mimeType: string;
+  size: number;
+}
 
 const STEP = 4;
 const TOTAL_STEPS = 4;
@@ -24,15 +30,14 @@ export default function PitchDeckScreen() {
   const router = useRouter();
   const theme = useThemeColor();
 
-  const [pitchDeckUri, setPitchDeckUri] = useState<string | undefined>();
-  const [pitchDeckName, setPitchDeckName] = useState<string | undefined>();
+  const [deck, setDeck] = useState<PickedDeck | undefined>();
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const data = getInternalFounderData();
     if (data.pitchDeckUri) {
-      setPitchDeckUri(data.pitchDeckUri);
-      setPitchDeckName('Selected pitch deck');
+      // Restore just the local reference; metadata is re-read if they re-pick.
+      setDeck({ uri: data.pitchDeckUri, name: 'Selected pitch deck', mimeType: '', size: 0 });
     }
   }, []);
 
@@ -48,8 +53,13 @@ export default function PitchDeckScreen() {
       });
 
       if (!result.canceled && result.assets?.length) {
-        setPitchDeckUri(result.assets[0].uri);
-        setPitchDeckName(result.assets[0].name);
+        const asset = result.assets[0];
+        setDeck({
+          uri: asset.uri,
+          name: asset.name,
+          mimeType: asset.mimeType ?? 'application/pdf',
+          size: asset.size ?? 0,
+        });
       }
     } catch {
       showError('Failed to select the file. Please try again.');
@@ -90,26 +100,40 @@ export default function PitchDeckScreen() {
 
     setSubmitting(true);
     try {
-      // Upload the deck to Firebase Storage first (optional).
-      if (pitchDeckUri) {
-        const userId = getUserId() ?? 'unknown';
-        const downloadUrl = await uploadPitchDeck(pitchDeckUri, userId, pitchDeckName);
-        // Held locally for now — backend has no pitch-deck field yet.
-        setInternalFounderData({ pitchDeckUri, pitchDeckUrl: downloadUrl });
-      }
-
+      // 1. Create the founder profile (required).
       await submitFounderOnboarding(payload);
       setUserOnboardingStatus();
-      router.replace('/(tabs)/discover');
     } catch (e) {
       const message =
         e instanceof ApiError
           ? e.message
           : 'Could not complete onboarding. Please check your connection and try again.';
       showError(message);
-    } finally {
       setSubmitting(false);
+      return;
     }
+
+    // 2. Upload the deck (optional, best-effort): backend signs a URL, we PUT to
+    //    it, then the backend ingests it. A failure here shouldn't block the user.
+    if (deck?.uri && deck.size > 0) {
+      try {
+        const storagePath = await uploadAndIngestPitchDeck({
+          localUri: deck.uri,
+          filename: deck.name,
+          contentType: deck.mimeType || 'application/pdf',
+          sizeBytes: deck.size,
+        });
+        setInternalFounderData({ pitchDeckUri: deck.uri, pitchDeckPath: storagePath });
+      } catch {
+        Alert.alert(
+          'Profile created',
+          "We couldn't upload your pitch deck, but your profile is ready. You can add it later.",
+        );
+      }
+    }
+
+    setSubmitting(false);
+    router.replace('/(tabs)/discover');
   };
 
   return (
@@ -134,15 +158,15 @@ export default function PitchDeckScreen() {
           >
             <Ionicons name="cloud-upload-outline" size={48} color={theme.primary} />
             <Text style={[styles.uploadBoxText, { color: theme.primary }]}>
-              {pitchDeckUri ? 'Replace pitch deck' : 'Tap to upload'}
+              {deck?.uri ? 'Replace pitch deck' : 'Tap to upload'}
             </Text>
           </TouchableOpacity>
 
-          {pitchDeckName && (
+          {deck?.name && (
             <View style={[styles.fileContainer, { backgroundColor: theme.secondary }]}>
               <Ionicons name="document" size={24} color={theme.primary} />
               <Text style={[styles.fileName, { color: theme.text }]} numberOfLines={1}>
-                {pitchDeckName}
+                {deck.name}
               </Text>
             </View>
           )}

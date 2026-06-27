@@ -15,9 +15,9 @@ export interface FounderOnboardingData {
   target_raise_inr?: number;
   min_cheque_inr?: number;
 
-  // Held locally only: backend has no pitch-deck field yet.
+  // Pitch deck references (held locally; the backend owns the object server-side).
   pitchDeckUri?: string; // local file uri from the document picker
-  pitchDeckUrl?: string; // Firebase Storage download URL after upload
+  pitchDeckPath?: string; // storage object path returned by the backend after upload
 }
 
 /**
