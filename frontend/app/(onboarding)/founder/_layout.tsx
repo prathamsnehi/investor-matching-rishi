@@ -11,9 +11,9 @@ export default function FounderLayout() {
       animation: 'slide_from_right'
     }}>
       <Stack.Screen name="1-basic-info" />
-      <Stack.Screen name="2-founding-year" />
-      <Stack.Screen name="3-business-snapshot" />
-      <Stack.Screen name="4-optional" />
+      <Stack.Screen name="2-stage" />
+      <Stack.Screen name="3-fundraising" />
+      <Stack.Screen name="4-pitch-deck" />
     </Stack>
   );
 }
