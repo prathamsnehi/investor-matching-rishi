@@ -25,3 +25,6 @@ __pycache__/
 
 #volume files
 **/uploads/
+
+docs/sample_decks/
+**/docs/sample_decks/
