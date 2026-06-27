@@ -1,13 +1,16 @@
 import { Redirect } from "expo-router";
 import { getUserOnboardingStatus } from "@/utils/storage/onboarding";
+import { isAuthenticated } from "@/utils/storage/auth";
 
 export default function Index() {
-  // synchronous onboarding status check:
-  const isOnboarded = getUserOnboardingStatus();
-
-  if (isOnboarded) {
-    return <Redirect href="/(tabs)/discover" />;
+  // Gate order: must be signed in -> must be onboarded -> app.
+  if (!isAuthenticated()) {
+    return <Redirect href="/(auth)/welcome" />;
   }
 
-  return <Redirect href="/(onboarding)" />;
+  if (!getUserOnboardingStatus()) {
+    return <Redirect href="/(onboarding)" />;
+  }
+
+  return <Redirect href="/(tabs)/discover" />;
 }

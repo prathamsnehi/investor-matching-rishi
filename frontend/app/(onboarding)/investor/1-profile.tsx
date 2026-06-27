@@ -1,43 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { SelectionGroup } from '@/components/onboarding/SelectionGroup';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { useThemeColor } from '@/utils/contexts/ColorProvider';
-import { getInternalFounderData, setInternalFounderData } from '@/utils/storage/onboarding';
+import { getInternalInvestorData, setInternalInvestorData } from '@/utils/storage/onboarding';
 import { showError } from '@/utils/validation';
+import { INVESTOR_TYPE_OPTIONS, labelsToValues, valuesToLabels } from '@/constants/enums';
 
 const STEP = 1;
-const TOTAL_STEPS = 4;
-const ONE_LINE_MAX = 140;
+const TOTAL_STEPS = 3;
+const TYPE_LABELS = INVESTOR_TYPE_OPTIONS.map((o) => o.label);
 
-export default function BasicInfoScreen() {
+export default function InvestorProfileScreen() {
   const router = useRouter();
   const theme = useThemeColor();
 
-  const [startupName, setStartupName] = useState('');
-  const [oneLineDesc, setOneLineDesc] = useState('');
-  const [fullDesc, setFullDesc] = useState('');
+  const [investorType, setInvestorType] = useState<string[]>([]);
+  const [briefBio, setBriefBio] = useState('');
 
   useEffect(() => {
-    const data = getInternalFounderData();
-    if (data.startup_name) setStartupName(data.startup_name);
-    if (data.one_line_desc) setOneLineDesc(data.one_line_desc);
-    if (data.full_desc) setFullDesc(data.full_desc);
+    const data = getInternalInvestorData();
+    if (data.investor_type) setInvestorType(valuesToLabels(INVESTOR_TYPE_OPTIONS, [data.investor_type]));
+    if (data.brief_bio) setBriefBio(data.brief_bio);
   }, []);
 
   const nextStep = () => {
-    if (!startupName.trim()) return showError('Please enter your startup name.');
-    if (!oneLineDesc.trim()) return showError('Please enter a one-line description.');
-    if (!fullDesc.trim()) return showError('Please describe your startup.');
+    if (investorType.length === 0) return showError('Please select how you invest.');
+    if (!briefBio.trim()) return showError('Please add a brief bio.');
 
-    setInternalFounderData({
-      startup_name: startupName.trim(),
-      one_line_desc: oneLineDesc.trim(),
-      full_desc: fullDesc.trim(),
+    setInternalInvestorData({
+      investor_type: labelsToValues(INVESTOR_TYPE_OPTIONS, investorType)[0],
+      brief_bio: briefBio.trim(),
     });
-    router.push('/(onboarding)/founder/2-stage');
+    router.push('/(onboarding)/investor/2-thesis');
   };
 
   return (
@@ -48,32 +46,19 @@ export default function BasicInfoScreen() {
         keyboardVerticalOffset={20}
       >
         <View style={styles.headerContainer}>
-          <Text style={[styles.header, { color: theme.text }]}>Founder Profile</Text>
+          <Text style={[styles.header, { color: theme.text }]}>Investor Profile</Text>
           <ProgressBar progress={STEP / TOTAL_STEPS} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text style={[styles.sectionHeader, { color: theme.primary }]}>Startup Identity</Text>
+          <Text style={[styles.sectionHeader, { color: theme.primary }]}>Your Profile</Text>
 
+          <SelectionGroup title="I am investing as" options={TYPE_LABELS} selected={investorType} onSelect={setInvestorType} />
           <TextField
-            label="Startup name"
-            value={startupName}
-            onChangeText={setStartupName}
-            placeholder="e.g. TechFlow Solutions"
-          />
-          <TextField
-            label="One-line description"
-            value={oneLineDesc}
-            onChangeText={(t) => setOneLineDesc(t.slice(0, ONE_LINE_MAX))}
-            placeholder="Shown on your discovery card"
-            maxLength={ONE_LINE_MAX}
-            helperText={`${oneLineDesc.length}/${ONE_LINE_MAX} characters`}
-          />
-          <TextField
-            label="Full description"
-            value={fullDesc}
-            onChangeText={setFullDesc}
-            placeholder="Tell investors what you do, the problem you solve, and your traction."
+            label="Brief bio"
+            value={briefBio}
+            onChangeText={setBriefBio}
+            placeholder="Your background and what you bring beyond capital."
             multiline
           />
 
