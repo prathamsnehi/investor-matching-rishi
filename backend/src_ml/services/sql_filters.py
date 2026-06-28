@@ -53,7 +53,7 @@ class FilterRequest(BaseModel):
 
 @router.post("/hard_filter")
 async def hard_filter(req: FilterRequest) -> Dict[str, Any]:
-    candidate_ids = filter.get_hard_filtered_candidates(req.investor_id)
+    candidate_ids: List[str] = filter.get_hard_filtered_candidates(req.investor_id)
     return {
         "status" : "ok",
         "candidates" : candidate_ids
