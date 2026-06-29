@@ -74,6 +74,23 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+  
+  chat:
+    build:
+      context: .
+      dockerfile: Dockerfile.chat
+    container_name: chat
+    environment:
+      - REDIS_URL=${REDIS_URL}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET_KEY}
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
