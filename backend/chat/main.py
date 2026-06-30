@@ -1,21 +1,30 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from prisma_db.prisma_client import db
+from src_api.core.redis_client import redis_db
 
 from typing import Dict, Any
 import logging
 
+# -- ROUTERS --
+from chat.core.router import router as chatRouter
+
 logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await db.client.connect()
-    logger.info("Chat session initialised")
+    await redis_db.connect()
 
-    yield
+    async with db.lifespan():
+        logger.info("Chat session initialised")
+        yield
 
     logger.info("Shutting down chat service")
     await db.client.close()
+    await redis_db.disconnect()
+
+    logger.info("Chat service shutdown complete")
 
 
 app = FastAPI(
@@ -24,10 +33,12 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.include_router(chatRouter, tags=["chat"])
 
 @app.get("/ping")
 async def ping() -> Dict[str, Any]:
     return {
-        "status" : "ok"
+        "status" : "ok",
+        "redis_ping" : await redis_db.ping()
     }
 

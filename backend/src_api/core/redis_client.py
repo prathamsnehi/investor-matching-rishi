@@ -7,9 +7,13 @@ logger = logging.getLogger(__name__)
 REDIS_URL = os.getenv("REDIS_URL")
 
 class RedisClient:
-    def __init__(self) -> None:
+    def __init__(self, redis_url: str = REDIS_URL) -> None:
         self.pool = None
         self.client = None
+        self.url = redis_url
+
+        if not redis_url:
+            raise RuntimeError("Redis URL not set")
 
     async def connect(self):
         """
@@ -17,7 +21,7 @@ class RedisClient:
         """
 
         try:
-            self.pool = ConnectionPool.from_url(REDIS_URL, decode_responses=True)
+            self.pool = ConnectionPool.from_url(self.url, decode_responses=True)
             self.client = Redis(connection_pool=self.pool)
             await self.client.ping()
             
@@ -35,6 +39,9 @@ class RedisClient:
             await self.client.aclose()
             logger.info("Disconnected from redis")
 
+    async def ping(self):
+        await self.client.ping()
 
 
-redis_db = RedisClient()
+
+redis_db = RedisClient(REDIS_URL)
