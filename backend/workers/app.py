@@ -1,5 +1,6 @@
 from taskiq_redis import RedisAsyncResultBackend, ListQueueBroker
-from taskiq import TaskiqEvents
+from taskiq import TaskiqEvents, TaskiqScheduler
+from taskiq.schedule_sources import LabelScheduleSource
 from config.logger_config import FundmatchLogger
 
 from src_api.core.redis_client import redis_db
@@ -21,6 +22,11 @@ broker = ListQueueBroker(
     url="redis://redis:6379/3",
 ).with_result_backend(result_backend)
 
+scheduler = TaskiqScheduler(
+    broker=broker,
+    sources=[LabelScheduleSource(broker)]
+)
+
 @broker.on_event(TaskiqEvents.WORKER_STARTUP)
 async def startup_event(state) -> None:
     await redis_db.connect()
@@ -30,5 +36,5 @@ async def startup_event(state) -> None:
 @broker.on_event(TaskiqEvents.WORKER_SHUTDOWN)
 async def shutdown_event(state) -> None:
     await redis_db.disconnect()
-    await db.client.close()
+    await db.client.disconnect()
     logger.info("Worker disconnected")

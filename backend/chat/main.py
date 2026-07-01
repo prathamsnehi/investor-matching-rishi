@@ -21,7 +21,6 @@ async def lifespan(app: FastAPI):
         yield
 
     logger.info("Shutting down chat service")
-    await db.client.close()
     await redis_db.disconnect()
 
     logger.info("Chat service shutdown complete")
@@ -38,7 +37,6 @@ app.include_router(chatRouter, tags=["chat"])
 @app.get("/ping")
 async def ping() -> Dict[str, Any]:
     return {
-        "status" : "ok",
+        "status" : "ok" if redis_db.ping() else "not ok",
         "redis_ping" : await redis_db.ping()
     }
-

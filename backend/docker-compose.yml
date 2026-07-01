@@ -66,6 +66,7 @@ services:
     container_name: worker
     environment:
       - REDIS_URL=${REDIS_URL}
+      - DATABASE_URL=${DATABASE_URL}
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -81,6 +82,7 @@ services:
     container_name: scheduler
     environment:
       - REDIS_URL=${REDIS_URL}
+      - DATABASE_URL=${DATABASE_URL}
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -89,17 +91,18 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
-    command: ["taskiq", "scheduler", "workers.tasks:broker"]
+    command: ["taskiq", "scheduler", "workers.app:scheduler"]
   
   chat:
     build:
       context: .
-      dockerfile: Dockerfile.chat
+      dockerfile: chat/Dockerfile.chat
     container_name: chat
     ports:
       - "8008:8008"
     environment:
       - REDIS_URL=${REDIS_URL}
+      - DATABASE_URL=${DATABASE_URL}
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}

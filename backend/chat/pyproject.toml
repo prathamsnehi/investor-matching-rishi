@@ -10,6 +10,7 @@ dependencies = [
     "prisma>=0.13.1",                    # Database ORM (for onboarding checks & history)
     "redis>=5.0.0",                      # Redis client for the write-behind buffer
     "PyJWT>=2.8.0",                      # Stateless JWT decoding for WebSockets
-    "python-jose[cryptography]>=3.3.0",  # Required by your src_api auth dependency
-    "pydantic>=2.7.0"                    # Data validation (FastAPI relies on this)
+    "python-jose[cryptography]>=3.3.0",  # Required by your src_api auth dependency                    # Data validation (FastAPI relies on this)
+    "pydantic>=2.7.0",
+    "jwt>=1.4.0",
 ]

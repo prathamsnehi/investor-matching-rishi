@@ -1,4 +1,4 @@
-from src_ml.api_gateway import ml_db
+from prisma_db.prisma_client import db
 from typing import List, Dict, Any
 
 from fastapi import APIRouter
@@ -36,7 +36,7 @@ class SQLFilters:
                 AND i.min_cheque_inr <= fp.target_raise_inr;
             """
         try:
-            results = await ml_db.client.query_raw(query, investor_id)
+            results = await db.client.query_raw(query, investor_id)
             candidate_account_ids = [row["accountId"] for row in results]
         except Exception as e:
             logger.exception("Failed to generate candidates")
@@ -45,7 +45,7 @@ class SQLFilters:
         return candidate_account_ids
     
 
-router = APIRouter(prefix="sql")
+router = APIRouter(prefix="/sql")
 filter = SQLFilters()
 
 class FilterRequest(BaseModel):

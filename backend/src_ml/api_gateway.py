@@ -3,7 +3,7 @@ from src_ml.services.routes import api_router
 from config.logger_config import FundmatchLogger
 
 from contextlib import asynccontextmanager
-from primsa import Prisma
+from prisma_db.prisma_client import db
 
 import logging
 
@@ -11,16 +11,13 @@ logs = FundmatchLogger(logging.DEBUG)
 logs.setup_logging()
 logger = logging.getLogger(__name__)
 
-ml_db = Prisma()
-
 @asynccontextmanager
 async def ml_lifespan(app: FastAPI):
-    await ml_db.connect()
-    logger.info("ML service started")
-    
-    yield
+    async with db.lifespan():
+        yield
+        logger.info("ML service started")
 
-    await ml_db.disconnect()
+    await db.disconnect()
     logger.info("ML service shutting down")
 
 app = FastAPI(
