@@ -2,22 +2,38 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPExce
 from typing import Dict, Any, List
 import json
 import logging
+import os
 
 from src_api.core.redis_client import redis_db
+from src_api.dependencies.auth import get_fully_onboarded_user as get_http_onboarded_user
 from prisma_db.prisma_client import db
-from chat.auth import get_fully_onboarded_user
+from chat.auth import get_fully_onboarded_user_ws
 from chat.core.manager import redis_manager
+from chat.core.broker_client import trigger_flush_task
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+flush_threshold = os.getenv("CHAT_FLUSH_THRESHOLD")
 
 @router.websocket("/chat/{conversation_id}")
 async def chat_endpoint(
     websocket: WebSocket,
     conversation_id: str,
-    user_id: str = Depends(get_fully_onboarded_user)
+    user_id: str = Depends(get_fully_onboarded_user_ws)
 ):
+    conversation = await db.client.conversation.find_unique(
+        where={"id" : conversation_id}
+    )
+
+    if not conversation or user_id not in [conversation.founderId, conversation.investorId]:
+        await websocket.close(
+            code=status.WS_1008_POLICY_VIOLATION,
+        )
+        return
+    
+    recipient_id = conversation.founderId if user_id == conversation.investorId else conversation.investorId
+
     await redis_manager.connect(user_id, websocket)
 
     try:
@@ -41,9 +57,15 @@ async def chat_endpoint(
             await redis.rpush(f"chat:buffer:{conversation_id}", message_str)
             await redis.sadd("chat:dirty_conversations", conversation_id)
 
-            recipient_id = data.get("recipientId")
-            if recipient_id:
-                await redis_manager.send_personal_message(message_payload, recipient_id)
+            #webhook style threshold trigger
+
+            buffer_length = await redis.llen(f"chat:buffer:{conversation_id}")
+            if buffer_length >= flush_threshold:
+                logger.info(f"Threshold reached ({buffer_length} msgs). Inserting into postgres...")
+                await trigger_flush_task.kiq()
+
+            await redis_manager.send_personal_message(message_payload, recipient_id)
+
     except WebSocketDisconnect:
         redis_manager.disconnect(user_id)
     except Exception as e:
@@ -55,7 +77,7 @@ async def chat_endpoint(
 async def get_chat_history(
     conversation_id: str,
     limit: int = 70,
-    current_user: str = Depends(get_fully_onboarded_user)
+    current_user: str = Depends(get_http_onboarded_user)
 ):
     """
     Fetches chat history by merging the hot Redis buffer with cold Postgres storage.
@@ -92,7 +114,7 @@ async def get_chat_history(
 
     pg_limit = max(0, limit - len(redis_messages))
 
-    pg_messages = []
+    pg_messages: List[Dict[str, Any]] = []
     if pg_limit > 0:
         db_messages = await db.client.message.find_many(
             where={"conversationId" : conversation_id},
@@ -111,7 +133,7 @@ async def get_chat_history(
                 }
             )
 
-    combined_msgs = redis_messages + db_messages
+    combined_msgs = redis_messages + pg_messages
     combined_msgs.sort(key=lambda x: x["createdAt"])
 
     return {

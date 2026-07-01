@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from prisma_db.prisma_client import db
 from src_api.core.redis_client import redis_db
+from chat.core.broker_client import chat_broker
 
 from typing import Dict, Any
 import logging
@@ -15,6 +16,10 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await redis_db.connect()
+    logger.info("Chat connected to redis")
+
+    await chat_broker.startup()
+    logger.info("Chat connected to broker")
 
     async with db.lifespan():
         logger.info("Chat session initialised")
@@ -22,6 +27,10 @@ async def lifespan(app: FastAPI):
 
     logger.info("Shutting down chat service")
     await redis_db.disconnect()
+    logger.info("Chat disconnected with redis")
+
+    await chat_broker.shutdown()
+    logger.info("Chat disconnected with broker")
 
     logger.info("Chat service shutdown complete")
 

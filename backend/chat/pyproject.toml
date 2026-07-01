@@ -12,5 +12,7 @@ dependencies = [
     "PyJWT>=2.8.0",                      # Stateless JWT decoding for WebSockets
     "python-jose[cryptography]>=3.3.0",  # Required by your src_api auth dependency                    # Data validation (FastAPI relies on this)
     "pydantic>=2.7.0",
-    "jwt>=1.4.0",
+    "taskiq>=0.11.0",
+    "taskiq-redis>=0.5.0",
+    "passlib[bcrypt]>=1.7.4",
 ]

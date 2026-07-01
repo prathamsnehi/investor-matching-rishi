@@ -27,7 +27,7 @@ app = FastAPI(
     lifespan=ml_lifespan
 )
 
-@app.get('/')
+@app.get('/ping')
 def health_check():
     logger.info("System healthy")
     return {

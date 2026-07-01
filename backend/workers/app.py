@@ -6,6 +6,7 @@ from config.logger_config import FundmatchLogger
 from src_api.core.redis_client import redis_db
 from prisma_db.prisma_client import db
 
+import os
 import logging
 
 logs = FundmatchLogger(logging.DEBUG)
@@ -14,12 +15,16 @@ logger = logging.getLogger(__name__)
 
 logger.debug("Worker app started")
 
+base_redis_url = os.getenv("REDIS_URL", "redis://redis:6379")
+if base_redis_url.rfind("/") > base_redis_url.find("://") + 2:
+    base_redis_url = base_redis_url.rsplit("/", 1)[0]
+
 result_backend = RedisAsyncResultBackend(
-    redis_url="redis://redis:6379/2",
+    redis_url=f"{base_redis_url}/2",
 )
 
 broker = ListQueueBroker(
-    url="redis://redis:6379/3",
+    url=f"{base_redis_url}/3",
 ).with_result_backend(result_backend)
 
 scheduler = TaskiqScheduler(

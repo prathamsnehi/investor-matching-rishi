@@ -37,7 +37,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-@app.get('/')
+@app.get('/ping')
 def health_check():
     logger.info("Healthcheck endpoint hit")
     return {

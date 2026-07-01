@@ -97,10 +97,10 @@ async def extract_text_from_upload(
     }
 
 
-@broker.task(schedule=[{"cron" : "*/5 * * * *"}])
+@broker.task(schedule=[{"cron" : "* * * * *"}])
 async def flush_chat_messages_to_db() -> str:
     """
-    Runs every 5 minutes to flush all chat messages into postgres securely
+    Runs every 1 minute  to flush all chat messages into postgres securely
     """
     redis = redis_db.client
 
@@ -115,15 +115,16 @@ async def flush_chat_messages_to_db() -> str:
 
     for convo_id in dirty_convos:
         buffer_key = f"chat:buffer:{convo_id}"
+        processing_key = f"chat:processing:{convo_id}"
 
-        pipe = redis.pipeline()
-        pipe.lrange(buffer_key, 0, -1)
-        pipe.delete(buffer_key)
-        pipe.srem("chat:dirty_conversations", convo_id)
+        if not await redis.exists(processing_key):
+            try:
+                await redis.rename(buffer_key, processing_key)
+            except Exception:
+                await redis.srem("chat:dirty_conversations", convo_id)
+                continue
 
-        results = await pipe.execute()
-
-        raw_messages: List[str] = results[0]
+        raw_messages: List[str] = await redis.lrange(processing_key, 0, -1)
 
         if not raw_messages:
             continue
@@ -145,14 +146,20 @@ async def flush_chat_messages_to_db() -> str:
 
         if parsed_messages:
             try:
-                await db.client.message.create_many(data=parsed_messages)
+                await db.client.message.create_many(
+                    data=parsed_messages,
+                    skip_duplicates=True
+                )
                 total_inserted += len(parsed_messages)
+
+                if total_inserted > 0:
+                    await redis.delete(processing_key)
+
+                if not await redis.exists(buffer_key):
+                    await redis.srem("chat:dirty_conversations", convo_id)
             except Exception as e:
                 logger.error(f"Postgres Insert Failed for convo {convo_id}: {e}")
-                
-                # CRITICAL FALLBACK: if pg not available/down
-                await redis.rpush(buffer_key, *raw_messages)
-                await redis.sadd("chat:dirty_conversations", convo_id)
+
 
     logger.info(f"Successfully flushed {total_inserted} messages to Postgres.")
     return f"Flushed {total_inserted} messages."

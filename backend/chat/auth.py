@@ -14,7 +14,7 @@ JWT_SECRET = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
     
 
-async def get_fully_onboarded_user(token: str = Query(...)) -> str:
+async def get_fully_onboarded_user_ws(token: str = Query(...)) -> str:
     """
     Websocket dependency
     checks postgres for a user, if the user is onboarded and if the token is valid
@@ -30,6 +30,10 @@ async def get_fully_onboarded_user(token: str = Query(...)) -> str:
             raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason="Invalid token payload")
     except (jwt.ExpiredSignatureError, jwt.PyJWTError, JWTError) as e:
         logger.exception("Websocket JWT auth error")
+        raise WebSocketException(
+            code=status.WS_1008_POLICY_VIOLATION,
+            reason="Invalid or expired token"
+        )
 
     user_with_profiles = await db.client.account.find_unique(
         where={"id" : user_id},
